@@ -1,0 +1,44 @@
+version: "3.8"
+
+services:
+  db:
+    container_name: showerbot-db
+    image: postgres:alpine
+    restart: unless-stopped
+    environment:
+      - POSTGRES_USER=showerbot
+      - POSTGRES_PASSWORD=showerbot
+      - POSTGRES_DB=showerbot
+    volumes:
+      - ./docker-volume:/var/lib/postgresql/data
+    network_mode: host
+    healthcheck:
+      test: pg_isready -U showerbot -d showerbot
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  migrate:
+    container_name: showerbot-migration
+    image: badewanne3/showerbot-migrate:latest
+    env_file:
+      - .docker.env
+    volumes:
+      - ./docker-volume:/var/local/migration
+    network_mode: host
+    depends_on:
+      db:
+        condition: service_healthy
+    command: sqlx migrate run
+
+  bot:
+    container_name: showerbot
+    depends_on:
+      db:
+        condition: service_healthy
+    image: badewanne3/showerbot:latest
+    env_file:
+      - .docker.env
+    network_mode: host
+    volumes:
+      - ./docker-volume:/usr/local/showerbot

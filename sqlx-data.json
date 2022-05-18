@@ -1,0 +1,286 @@
+{
+  "db": "PostgreSQL",
+  "4552cc466a20937704ccec93a7a502874ea39e27e56838d64d4964297926e7cb": {
+    "describe": {
+      "columns": [
+        {
+          "name": "map_id",
+          "ordinal": 0,
+          "type_info": "Int4"
+        },
+        {
+          "name": "mapset_id",
+          "ordinal": 1,
+          "type_info": "Int4"
+        },
+        {
+          "name": "user_id",
+          "ordinal": 2,
+          "type_info": "Int4"
+        },
+        {
+          "name": "checksum",
+          "ordinal": 3,
+          "type_info": "Varchar"
+        },
+        {
+          "name": "version",
+          "ordinal": 4,
+          "type_info": "Varchar"
+        },
+        {
+          "name": "seconds_total",
+          "ordinal": 5,
+          "type_info": "Int4"
+        },
+        {
+          "name": "seconds_drain",
+          "ordinal": 6,
+          "type_info": "Int4"
+        },
+        {
+          "name": "count_circles",
+          "ordinal": 7,
+          "type_info": "Int4"
+        },
+        {
+          "name": "count_sliders",
+          "ordinal": 8,
+          "type_info": "Int4"
+        },
+        {
+          "name": "count_spinners",
+          "ordinal": 9,
+          "type_info": "Int4"
+        },
+        {
+          "name": "hp",
+          "ordinal": 10,
+          "type_info": "Float4"
+        },
+        {
+          "name": "cs",
+          "ordinal": 11,
+          "type_info": "Float4"
+        },
+        {
+          "name": "od",
+          "ordinal": 12,
+          "type_info": "Float4"
+        },
+        {
+          "name": "ar",
+          "ordinal": 13,
+          "type_info": "Float4"
+        },
+        {
+          "name": "mode",
+          "ordinal": 14,
+          "type_info": "Int2"
+        },
+        {
+          "name": "status",
+          "ordinal": 15,
+          "type_info": "Int2"
+        },
+        {
+          "name": "last_update",
+          "ordinal": 16,
+          "type_info": "Timestamptz"
+        },
+        {
+          "name": "stars",
+          "ordinal": 17,
+          "type_info": "Float4"
+        },
+        {
+          "name": "bpm",
+          "ordinal": 18,
+          "type_info": "Float4"
+        },
+        {
+          "name": "max_combo",
+          "ordinal": 19,
+          "type_info": "Int4"
+        }
+      ],
+      "nullable": [
+        false,
+        false,
+        false,
+        true,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        true
+      ],
+      "parameters": {
+        "Left": [
+          "Int4"
+        ]
+      }
+    },
+    "query": "SELECT * FROM maps WHERE map_id=$1"
+  },
+  "75e65e78a9e800956e14f624f37465cec1f81c78e2760a2ecd45a0ad19839926": {
+    "describe": {
+      "columns": [
+        {
+          "name": "guild_id",
+          "ordinal": 0,
+          "type_info": "Int8"
+        },
+        {
+          "name": "prefixes",
+          "ordinal": 1,
+          "type_info": "Json"
+        }
+      ],
+      "nullable": [
+        false,
+        false
+      ],
+      "parameters": {
+        "Left": []
+      }
+    },
+    "query": "SELECT * FROM guild_configs"
+  },
+  "852cabe23b38e388351acff0e76947945985a9ad623a5884d72414652470310a": {
+    "describe": {
+      "columns": [],
+      "nullable": [],
+      "parameters": {
+        "Left": [
+          "Int8",
+          "Json"
+        ]
+      }
+    },
+    "query": "INSERT INTO guild_configs (guild_id,prefixes)VALUES ($1,$2) ON CONFLICT (guild_id) DO UPDATE SET prefixes=$2"
+  },
+  "9f1e9eef50180f1d00d0e5f6ec7dc107464b38188f0141cd90d58d46d1ea0ae1": {
+    "describe": {
+      "columns": [
+        {
+          "name": "mapset_id",
+          "ordinal": 0,
+          "type_info": "Int4"
+        },
+        {
+          "name": "user_id",
+          "ordinal": 1,
+          "type_info": "Int4"
+        },
+        {
+          "name": "artist",
+          "ordinal": 2,
+          "type_info": "Varchar"
+        },
+        {
+          "name": "title",
+          "ordinal": 3,
+          "type_info": "Varchar"
+        },
+        {
+          "name": "creator",
+          "ordinal": 4,
+          "type_info": "Varchar"
+        },
+        {
+          "name": "bpm",
+          "ordinal": 5,
+          "type_info": "Float4"
+        },
+        {
+          "name": "status",
+          "ordinal": 6,
+          "type_info": "Int2"
+        },
+        {
+          "name": "ranked_date",
+          "ordinal": 7,
+          "type_info": "Timestamptz"
+        }
+      ],
+      "nullable": [
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      "parameters": {
+        "Left": [
+          "Int4"
+        ]
+      }
+    },
+    "query": "SELECT * FROM mapsets WHERE mapset_id=$1"
+  },
+  "a6904041119d493a7ad35f91665648d65154e4e4555104aefde5dfc9420c6ecd": {
+    "describe": {
+      "columns": [],
+      "nullable": [],
+      "parameters": {
+        "Left": [
+          "Int4",
+          "Int4",
+          "Varchar",
+          "Varchar",
+          "Int4",
+          "Int4",
+          "Int4",
+          "Int4",
+          "Int4",
+          "Float4",
+          "Float4",
+          "Float4",
+          "Float4",
+          "Int2",
+          "Int2",
+          "Timestamptz",
+          "Float4",
+          "Float4",
+          "Int4",
+          "Int4"
+        ]
+      }
+    },
+    "query": "INSERT INTO maps (map_id,mapset_id,checksum,version,seconds_total,seconds_drain,count_circles,count_sliders,count_spinners,hp,cs,od,ar,mode,status,last_update,stars,bpm,max_combo,user_id)VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20)ON CONFLICT (map_id) DO NOTHING"
+  },
+  "bac2d5e8e71d088e5d14617552f07b024d5424f07fab831796daa0e3e3e2c060": {
+    "describe": {
+      "columns": [],
+      "nullable": [],
+      "parameters": {
+        "Left": [
+          "Int4",
+          "Int4",
+          "Varchar",
+          "Varchar",
+          "Varchar",
+          "Int2",
+          "Timestamptz",
+          "Float4"
+        ]
+      }
+    },
+    "query": "INSERT INTO mapsets (mapset_id,user_id,artist,title,creator,status,ranked_date,bpm)VALUES($1,$2,$3,$4,$5,$6,$7,$8)ON CONFLICT (mapset_id) DO NOTHING"
+  }
+}

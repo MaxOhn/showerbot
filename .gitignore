@@ -1,0 +1,9 @@
+/proc_macros/target
+/proc_macros/Cargo.lock
+/target
+config.toml
+.env
+.docker.env
+/logs
+/.vscode
+/docker-volume

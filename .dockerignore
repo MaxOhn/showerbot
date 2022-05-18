@@ -1,0 +1,6 @@
+.github/
+logs/
+target/
+.env
+.docker.env
+docker-volume/

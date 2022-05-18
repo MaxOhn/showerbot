@@ -1,0 +1,8 @@
+FROM rust:slim-buster as builder
+
+RUN cargo install sqlx-cli --no-default-features --features postgres,rustls
+
+FROM debian:buster-slim
+
+COPY ./migrations ./migrations
+COPY --from=builder /usr/local/cargo/bin/sqlx /usr/local/bin/sqlx
