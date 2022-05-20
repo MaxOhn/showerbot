@@ -20,6 +20,9 @@ services:
 
   migrate:
     container_name: showerbot-migration
+    # build:
+    #   context: .
+    #   dockerfile: Dockerfile.amd.migrate
     image: badewanne3/showerbot-migrate:latest
     env_file:
       - .docker.env
@@ -36,6 +39,9 @@ services:
     depends_on:
       db:
         condition: service_healthy
+    # build:
+    #   context: .
+    #   dockerfile: Dockerfile.amd
     image: badewanne3/showerbot:latest
     env_file:
       - .docker.env
