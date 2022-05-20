@@ -1,41 +1,38 @@
-name: Build and push arm docker images
+name: Build and push arm docker
 
 on:
   workflow_dispatch:
 
 jobs:
   migrate:
-    runs-on: arm
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout project
         uses: actions/checkout@v3
-    
-      - name: Docker login
-        shell: bash
-        run: echo "${{ secrets.DOCKERHUB_PASSWORD }}" | docker login -u badewanne3 --password-stdin docker.io
         
-      - name: Build migrate docker image
-        shell: bash
-        run: docker build --file Dockerfile.arm.migrate --tag "docker.io/badewanne3/showerbot-migrate:arm32" .
-
-      - name: Push migrate docker image
-        shell: bash
-        run: docker push "docker.io/badewanne3/showerbot-migrate:arm32"
-
-  bot:
-    runs-on: arm
-    steps:
-      - name: Checkout project
-        uses: actions/checkout@v3
+      - name: Run commands
+        uses: uraimo/run-on-arch-action@v2
+        id: runcmd
+        with:
+          arch: armv7
+          distro: bullseye
     
-      - name: Docker login
-        shell: bash
-        run: echo "${{ secrets.DOCKERHUB_PASSWORD }}" | docker login -u badewanne3 --password-stdin docker.io
-        
-      - name: Build bot docker image
-        shell: bash
-        run: docker build --file Dockerfile.arm --tag "docker.io/badewanne3/showerbot:arm32" .
+          # - name: Docker login
+          #   shell: bash
+            run: echo "${{ secrets.DOCKERHUB_PASSWORD }}" | docker login -u badewanne3 --password-stdin docker.io
+            
+          # - name: Build migrate docker image
+          #   shell: bash
+            run: docker build --file Dockerfile.arm.migrate --tag "docker.io/badewanne3/showerbot-migrate:arm32" .
 
-      - name: Push bot docker image
-        shell: bash
-        run: docker push "docker.io/badewanne3/showerbot:arm32"
+          # - name: Push migrate docker image
+          #   shell: bash
+            run: docker push "docker.io/badewanne3/showerbot-migrate:arm32"
+            
+          # - name: Build bot docker image
+          #   shell: bash
+            run: docker build --file Dockerfile.arm --tag "docker.io/badewanne3/showerbot:arm32" .
+
+          # - name: Push bot docker image
+          #   shell: bash
+            run: docker push "docker.io/badewanne3/showerbot:arm32"
