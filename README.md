@@ -27,7 +27,15 @@ It only has the following commands:
 
 - Clone the repo: `git clone https://github.com/MaxOhn/showerbot`
 - Rename `.env.example` to `.docker.env` and edit the file as described inside
-- Compose docker images: `docker-compose up -d`
+- Compose docker images: `docker-compose -f {file} up -d`
+`{file}` must be either `docker-compose.amd.yml` if you run the bot on windows or a linux amd based platform (ubuntu, ...)
+or `docker-compose.arm.yml` if you run the bot on an arm based system like raspberry or macOS with an M1
+
+While running:
+
+- You can find the logs in `/docker-volume/logs`
+- To see live console output, run `docker attach showerbot`
+- To shut down, run `docker-compose down`
 
 ## Manual setup
 
@@ -38,9 +46,3 @@ It only has the following commands:
 - Rename `.env.example` to `.env` and edit the file as described inside
 - Run `sqlx database create && sqlx migrate run` to prepare the database
 - Compile and run: `cargo run --release`
-
-## While running
-
-- You can find the logs in `/docker-volume/logs`
-- To see live console output, run `docker attach showerbot`
-- To shut down, run `docker-compose down`
