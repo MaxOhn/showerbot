@@ -27,9 +27,9 @@ It only has the following commands:
 
 - Clone the repo: `git clone https://github.com/MaxOhn/showerbot`
 - Rename `.env.example` to `.docker.env` and edit the file as described inside
-- Compose docker images: `docker-compose -f {file} up -d`
-`{file}` must be either `docker-compose.amd.yml` if you run the bot on windows or a linux amd based platform (ubuntu, ...)
-or `docker-compose.arm.yml` if you run the bot on an arm based system like raspberry or macOS with an M1
+- Compose docker images: `docker-compose -f {file} up -d` with `{file}` being:
+  - `docker-compose.amd.yml` if you run the bot on windows or a linux amd based platform (ubuntu, ...)
+  - `docker-compose.arm.yml` if you run the bot on an arm based system like raspberry or macOS with an M1
 
 While running:
 
