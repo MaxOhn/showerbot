@@ -22,8 +22,9 @@ services:
     container_name: showerbot-migration
     # build:
     #   context: .
-    #   dockerfile: Dockerfile.amd.migrate
-    image: badewanne3/showerbot-migrate:latest
+    #   dockerfile: Dockerfile.migrate
+    platform: linux/amd64
+    image: badewanne3/showerbot-migrate:amd64
     env_file:
       - .docker.env
     volumes:
@@ -41,8 +42,9 @@ services:
         condition: service_healthy
     # build:
     #   context: .
-    #   dockerfile: Dockerfile.amd
-    image: badewanne3/showerbot:latest
+    #   dockerfile: Dockerfile
+    platform: linux/amd64
+    image: badewanne3/showerbot:amd64
     env_file:
       - .docker.env
     network_mode: host

@@ -1,0 +1,49 @@
+name: Build and push to docker
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        include:
+          - platform: linux/arm/v7
+            tag: arm32
+          - platform: linux/amd64
+            tag: amd64
+
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout project
+        uses: actions/checkout@v3
+    
+      - name: Docker login
+        shell: bash
+        run: echo "${{ secrets.DOCKERHUB_PASSWORD }}" | docker login -u badewanne3 --password-stdin docker.io
+        
+      - name: Build ${{ matrix.tag }} migrate docker image
+        shell: bash
+        run: |
+          docker buildx build \
+            --file Dockerfile.migrate \
+            --platform=${{ matrix.platform }} \
+            --tag "docker.io/badewanne3/showerbot-migrate:${{ matrix.tag }}" \
+            .
+
+      - name: Push ${{ matrix.tag }} migrate docker image
+        shell: bash
+        run: docker push "docker.io/badewanne3/showerbot-migrate:${{ matrix.tag }}"
+        
+      - name: Build ${{ matrix.tag }} bot docker image
+        shell: bash
+        run: |
+          docker buildx build \
+            --file Dockerfile \
+            --platform=${{ matrix.platform }} \
+            --tag "docker.io/badewanne3/showerbot:${{ matrix.tag }}" \
+            .
+
+      - name: Push ${{ matrix.tag }} bot docker image
+        shell: bash
+        run: docker push "docker.io/badewanne3/showerbot:${{ matrix.tag }}"

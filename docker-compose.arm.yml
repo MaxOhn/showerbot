@@ -22,8 +22,8 @@ services:
     container_name: showerbot-arm-migration
     # build:
     #   context: .
-    #   dockerfile: Dockerfile.arm.migrate
-    # platform: linux/arm/v7
+    #   dockerfile: Dockerfile.migrate
+    platform: linux/arm/v7
     image: badewanne3/showerbot-migrate:arm32
     env_file:
       - .docker.env
@@ -42,8 +42,8 @@ services:
         condition: service_healthy
     # build:
     #   context: .
-    #   dockerfile: Dockerfile.arm
-    # platform: linux/arm/v7
+    #   dockerfile: Dockerfile
+    platform: linux/arm/v7
     image: badewanne3/showerbot:arm32
     env_file:
       - .docker.env

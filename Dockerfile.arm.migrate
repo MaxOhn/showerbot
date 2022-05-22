@@ -1,8 +1,0 @@
-FROM arm32v7/rust:slim-bullseye as builder
-
-RUN cargo install sqlx-cli --no-default-features --features postgres,rustls
-
-FROM arm32v7/debian:bullseye-slim
-
-COPY ./migrations ./migrations
-COPY --from=builder /usr/local/cargo/bin/sqlx /usr/local/bin/sqlx
