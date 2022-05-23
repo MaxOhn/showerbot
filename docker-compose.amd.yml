@@ -18,28 +18,8 @@ services:
       timeout: 5s
       retries: 5
 
-  migrate:
-    container_name: showerbot-migration
-    # build:
-    #   context: .
-    #   dockerfile: Dockerfile.migrate
-    platform: linux/amd64
-    image: badewanne3/showerbot-migrate:amd64
-    env_file:
-      - .docker.env
-    volumes:
-      - ./docker-volume:/var/local/migration
-    network_mode: host
-    depends_on:
-      db:
-        condition: service_healthy
-    command: sqlx migrate run
-
   bot:
-    container_name: showerbot
-    depends_on:
-      db:
-        condition: service_healthy
+    container_name: showerbot-amd
     # build:
     #   context: .
     #   dockerfile: Dockerfile
@@ -47,6 +27,9 @@ services:
     image: badewanne3/showerbot:amd64
     env_file:
       - .docker.env
-    network_mode: host
     volumes:
-      - ./docker-volume:/usr/local/showerbot
+      - ./docker-volume:/var/local/showerbot
+    network_mode: host
+    depends_on:
+      db:
+        condition: service_healthy
