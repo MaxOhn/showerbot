@@ -31,11 +31,19 @@ It only has the following commands:
   - `docker-compose.amd.yml` if you run the bot on windows or a linux amd based platform (ubuntu, ...)
   - `docker-compose.arm.yml` if you run the bot on an arm based system like raspberry or macOS with an M1
 
+If there is an error along the lines of
+
+```
+thread 'main' panicked at 'called Result::unwrap() on an Err value: Os { code: 1, kind: PermissionDenied, message: "Operation not permitted" }'
+```
+
+you can un-comment the line `privileged: true` in the corresponding `docker-compose.{amd/arm}.yml` file and retry.
+
 While running:
 
 - You can find the logs in `/docker-volume/logs`
 - To see live console output, run `docker attach showerbot`
-- To shut down, run `docker-compose down`
+- To shut down, run `docker-compose -f {file} down`
 
 ## Manual setup
 

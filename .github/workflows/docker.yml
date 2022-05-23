@@ -34,16 +34,7 @@ jobs:
           username: badewanne3
           password: ${{ secrets.DOCKERHUB_PASSWORD }}
 
-      - name: Build and push migrate
-        uses: docker/build-push-action@v3
-        with:
-          context: .
-          file: Dockerfile.migrate
-          platforms: ${{ matrix.platform }}
-          push: true
-          tags: badewanne3/showerbot-migrate:${{ matrix.tag }}
-
-      - name: Build and push bot
+      - name: Build and push
         uses: docker/build-push-action@v3
         with:
           context: .

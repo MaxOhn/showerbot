@@ -9,27 +9,30 @@ services:
       - POSTGRES_USER=showerbot
       - POSTGRES_PASSWORD=showerbot
       - POSTGRES_DB=showerbot
+    ports:
+      - 5432:5432
     volumes:
       - ./docker-volume:/var/lib/postgresql/data
-    network_mode: host
-    healthcheck:
-      test: pg_isready -U showerbot -d showerbot
-      interval: 5s
-      timeout: 5s
-      retries: 5
+    networks:
+      - showerbot-net
 
   bot:
-    container_name: showerbot-arm
+    container_name: showerbot
     # build:
     #   context: .
     #   dockerfile: Dockerfile
     platform: linux/arm/v7
     image: badewanne3/showerbot:arm32
+    # privileged: true
     env_file:
       - .docker.env
     volumes:
       - ./docker-volume:/var/local/showerbot
-    network_mode: host
+    networks:
+      - showerbot-net
     depends_on:
-      db:
-        condition: service_healthy
+      - db
+
+networks:
+  showerbot-net:
+    driver: bridge

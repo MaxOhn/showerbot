@@ -3,7 +3,7 @@
 # https://github.com/docker/buildx/issues/395
 FROM --platform=$BUILDPLATFORM rust:slim-bullseye as builder-source
 
-RUN apt update && apt install -y git
+RUN apt -q update && apt install -qy git && apt install -qy netcat
 RUN git clone https://github.com/launchbadge/sqlx /usr/src/sqlx
 WORKDIR /usr/src/sqlx
 RUN mkdir .cargo && cargo vendor > .cargo/config
@@ -37,7 +37,10 @@ RUN touch .env && mkdir -p /usr/local/beatmaps/
 WORKDIR /usr/local/showerbot/
 COPY ./migrations ./migrations
 COPY ./start.sh .
-RUN chmod +x ./start.sh
+COPY ./wait-for-it.sh .
+RUN chmod +x ./start.sh && chmod +x ./wait-for-it.sh
+COPY --from=builder-source /bin/nc /bin/nc
+
 WORKDIR /var/local/showerbot
 
-CMD ["sh", "/usr/local/showerbot/start.sh"]
+CMD sh -c '/usr/local/showerbot/wait-for-it.sh showerbot-db:5432 -t 30 -- sh -c /usr/local/showerbot/start.sh'
