@@ -12,7 +12,7 @@ services:
     ports:
       - 5432:5432
     volumes:
-      - ./docker-volume:/var/lib/postgresql/data
+      - ./docker-volume/psql:/var/lib/postgresql/data
     networks:
       - showerbot-net
 
