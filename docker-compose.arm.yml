@@ -10,7 +10,7 @@ services:
       - POSTGRES_PASSWORD=showerbot
       - POSTGRES_DB=showerbot
     ports:
-      - 5432:5432
+      - 5423:5432
     volumes:
       - ./docker-volume/psql:/var/lib/postgresql/data
     networks:
