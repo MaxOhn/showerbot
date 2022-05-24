@@ -4,3 +4,4 @@ target/
 .env
 .docker.env
 docker-volume/
+emotes/
