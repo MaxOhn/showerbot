@@ -3,7 +3,7 @@ version: "3.8"
 services:
   db:
     container_name: showerbot-db
-    image: postgres:alpine
+    image: postgres:14.3-alpine
     restart: unless-stopped
     environment:
       - POSTGRES_USER=showerbot
@@ -32,6 +32,7 @@ services:
       - showerbot-net
     depends_on:
       - db
+    command: "sh -c '/usr/local/showerbot/wait-for-it.sh showerbot-db:5432 -t 30 -- sh -c /usr/local/showerbot/start.sh'"
 
 networks:
   showerbot-net:
