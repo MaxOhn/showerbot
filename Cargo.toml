@@ -1,6 +1,6 @@
 [package]
 name = "showerbot"
-version = "1.0.1"
+version = "1.0.2"
 authors = ["MaxOhn <ohn.m@hotmail.de>"]
 edition = "2021"
 
