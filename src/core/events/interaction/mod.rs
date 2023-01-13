@@ -9,8 +9,7 @@ use self::command::handle_command;
 mod command;
 
 pub async fn handle_interaction(ctx: Arc<Context>, interaction: Interaction) {
-    match interaction {
-        Interaction::ApplicationCommand(cmd) => handle_command(ctx, cmd).await,
-        _ => {}
+    if let Interaction::ApplicationCommand(cmd) = interaction {
+        handle_command(ctx, cmd).await
     }
 }

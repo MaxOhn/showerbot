@@ -263,7 +263,7 @@ async fn process_reaction<P: Pagination>(
             name: Some(name), ..
         } => match name.as_str() {
             // Move to start
-            "jump_start" => (pagination.index() != 0).then(|| 0),
+            "jump_start" => (pagination.index() != 0).then_some(0),
             // Move one page left
             "multi_step_back" => match pagination.index() {
                 0 => None,
