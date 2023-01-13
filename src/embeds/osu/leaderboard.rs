@@ -2,7 +2,7 @@ use std::fmt::{Display, Formatter, Result as FmtResult, Write};
 
 use command_macros::EmbedData;
 use hashbrown::{hash_map::Entry, HashMap};
-use rosu_pp::{Beatmap as Map, BeatmapExt, DifficultyAttributes};
+use rosu_pp::{Beatmap as Map, BeatmapExt, DifficultyAttributes, ScoreState};
 use rosu_v2::prelude::{Beatmap, Beatmapset, GameMode};
 
 use crate::{
@@ -12,7 +12,7 @@ use crate::{
     util::{
         builder::{AuthorBuilder, FooterBuilder},
         constants::{AVATAR_URL, MAP_THUMB_URL, OSU_BASE},
-        datetime::how_long_ago_dynamic,
+        datetime::HowLongAgoDynamic,
         numbers::with_comma_int,
         osu::prepare_beatmap_file,
         CowUtils, Emote, ScoreExt,
@@ -51,7 +51,7 @@ impl LeaderboardEmbed {
 
         let mut author_text = String::with_capacity(32);
 
-        if map.mode == GameMode::MNA {
+        if map.mode == GameMode::Mania {
             let _ = write!(author_text, "[{}K] ", map.cs as u32);
         }
 
@@ -93,7 +93,7 @@ impl LeaderboardEmbed {
                     pp = get_pp(&mut mod_map, score, &rosu_map).await,
                     acc = score.accuracy,
                     miss = MissFormat(score.count_miss),
-                    ago = how_long_ago_dynamic(&score.date),
+                    ago = HowLongAgoDynamic::new(&score.date),
                 );
             }
 
@@ -146,11 +146,21 @@ async fn get_pp(
         }
     };
 
+    let state = ScoreState {
+        max_combo: score.max_combo as usize,
+        n_geki: score.count_geki as usize,
+        n_katu: score.count_katu as usize,
+        n300: score.count300 as usize,
+        n100: score.count100 as usize,
+        n50: score.count50 as usize,
+        n_misses: score.count_miss as usize,
+    };
+
     let pp = map
         .pp()
         .attributes(attrs)
         .mods(score.mods.bits())
-        .state(score.into())
+        .state(state)
         .calculate()
         .pp() as f32;
 

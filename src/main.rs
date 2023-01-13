@@ -46,7 +46,7 @@ fn main() {
 }
 
 async fn async_main() -> eyre::Result<()> {
-    dotenv::dotenv()?;
+    dotenvy::dotenv()?;
     let _log_worker_guard = logging::initialize();
 
     // Load config file

@@ -1,7 +1,7 @@
 use std::path::PathBuf;
 
-use chrono::{DateTime, Utc};
 use rosu_v2::prelude::{GameMode, GameMods, Grade, Score};
+use time::OffsetDateTime;
 use tokio::{fs::File, io::AsyncWriteExt};
 use twilight_model::channel::{embed::Embed, Message};
 
@@ -157,7 +157,7 @@ impl MapIdType {
 pub trait SortableScore {
     fn acc(&self) -> f32;
     fn bpm(&self) -> f32;
-    fn created_at(&self) -> DateTime<Utc>;
+    fn created_at(&self) -> OffsetDateTime;
     fn map_id(&self) -> u32;
     fn mapset_id(&self) -> u32;
     fn max_combo(&self) -> u32;
@@ -166,7 +166,7 @@ pub trait SortableScore {
     fn n_misses(&self) -> u32;
     fn pp(&self) -> Option<f32>;
     fn score(&self) -> u32;
-    fn score_id(&self) -> u64;
+    fn score_id(&self) -> Option<u64>;
     fn seconds_drain(&self) -> u32;
     fn stars(&self) -> f32;
     fn total_hits_sort(&self) -> u32;
@@ -181,8 +181,8 @@ impl SortableScore for Score {
         self.map.as_ref().map_or(0.0, |map| map.bpm)
     }
 
-    fn created_at(&self) -> DateTime<Utc> {
-        self.created_at
+    fn created_at(&self) -> OffsetDateTime {
+        self.ended_at
     }
 
     fn map_id(&self) -> u32 {
@@ -217,7 +217,7 @@ impl SortableScore for Score {
         self.score
     }
 
-    fn score_id(&self) -> u64 {
+    fn score_id(&self) -> Option<u64> {
         self.score_id
     }
 
@@ -245,7 +245,7 @@ macro_rules! impl_sortable_score_tuple {
                 SortableScore::bpm(&self.$idx)
             }
 
-            fn created_at(&self) -> DateTime<Utc> {
+            fn created_at(&self) -> OffsetDateTime {
                 SortableScore::created_at(&self.$idx)
             }
 
@@ -281,7 +281,7 @@ macro_rules! impl_sortable_score_tuple {
                 SortableScore::score(&self.$idx)
             }
 
-            fn score_id(&self) -> u64 {
+            fn score_id(&self) -> Option<u64> {
                 SortableScore::score_id(&self.$idx)
             }
 

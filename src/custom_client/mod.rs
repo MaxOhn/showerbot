@@ -22,7 +22,7 @@ pub use self::{error::*, score::*};
 
 use self::score::ScraperScores;
 
-mod deserialize;
+mod deser;
 mod error;
 mod score;
 
@@ -139,7 +139,7 @@ impl CustomClient {
             .unwrap_or(true);
 
         // Check if another request for mania's MR is needed
-        if mode == GameMode::MNA && non_mirror {
+        if mode == GameMode::Mania && non_mirror {
             let mods = match mods {
                 None => Some(GameMods::Mirror),
                 Some(mods) => Some(mods | GameMods::Mirror),
@@ -164,7 +164,7 @@ impl CustomClient {
 
         // If DT / NC included, make another request
         if mods.is_some() {
-            if mode == GameMode::MNA && non_mirror {
+            if mode == GameMode::Mania && non_mirror {
                 let mods = mods.map(|mods| mods | GameMods::Mirror);
                 let mut new_scores = self._get_leaderboard(map_id, national, mods).await?;
                 scores.append(&mut new_scores);

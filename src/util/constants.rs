@@ -16,5 +16,4 @@ pub const OSU_API_ISSUE: &str = "Some issue with the osu api, blame bade";
 pub const OSU_WEB_ISSUE: &str = "Some issue with the osu website, DDoS protection?";
 
 // Misc
-pub const DATE_FORMAT: &str = "%F %T";
 pub const BATHBOT_GITHUB: &str = "https://github.com/MaxOhn/Bathbot";
