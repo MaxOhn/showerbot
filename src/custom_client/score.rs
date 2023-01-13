@@ -114,9 +114,9 @@ impl From<&ScraperScore> for ScoreState {
             n300: score.count300 as usize,
             n100: score.count100 as usize,
             n50: score.count50 as usize,
+            n_geki: score.count_geki as usize,
             n_katu: score.count_katu as usize,
-            misses: score.count_miss as usize,
-            score: score.score,
+            n_misses: score.count_miss as usize,
         }
     }
 }
