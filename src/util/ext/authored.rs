@@ -1,7 +1,4 @@
 use twilight_model::{
-    application::interaction::{
-        ApplicationCommand, ApplicationCommandAutocomplete, MessageComponentInteraction,
-    },
     channel::Message,
     id::{
         marker::{ChannelMarker, GuildMarker, UserMarker},
@@ -10,7 +7,7 @@ use twilight_model::{
     user::User,
 };
 
-use crate::{error::Error, BotResult};
+use crate::{core::InteractionCommand, error::Error, BotResult};
 
 pub trait Authored {
     /// Channel id of the event
@@ -29,18 +26,15 @@ pub trait Authored {
     fn username(&self) -> BotResult<&str>;
 }
 
-impl Authored for ApplicationCommand {
-    #[inline]
+impl Authored for InteractionCommand {
     fn channel_id(&self) -> Id<ChannelMarker> {
         self.channel_id
     }
 
-    #[inline]
     fn guild_id(&self) -> Option<Id<GuildMarker>> {
         self.guild_id
     }
 
-    #[inline]
     fn user(&self) -> BotResult<&User> {
         self.member
             .as_ref()
@@ -49,12 +43,10 @@ impl Authored for ApplicationCommand {
             .ok_or(Error::MissingAuthor)
     }
 
-    #[inline]
     fn user_id(&self) -> BotResult<Id<UserMarker>> {
         self.user().map(|user| user.id)
     }
 
-    #[inline]
     fn username(&self) -> BotResult<&str> {
         self.user().map(|user| user.name.as_str())
     }
@@ -84,67 +76,5 @@ impl Authored for Message {
     #[inline]
     fn username(&self) -> BotResult<&str> {
         Ok(self.author.name.as_str())
-    }
-}
-
-impl Authored for MessageComponentInteraction {
-    #[inline]
-    fn channel_id(&self) -> Id<ChannelMarker> {
-        self.channel_id
-    }
-
-    #[inline]
-    fn guild_id(&self) -> Option<Id<GuildMarker>> {
-        self.guild_id
-    }
-
-    #[inline]
-    fn user(&self) -> BotResult<&User> {
-        self.member
-            .as_ref()
-            .and_then(|member| member.user.as_ref())
-            .or(self.user.as_ref())
-            .ok_or(Error::MissingAuthor)
-    }
-
-    #[inline]
-    fn user_id(&self) -> BotResult<Id<UserMarker>> {
-        self.user().map(|user| user.id)
-    }
-
-    #[inline]
-    fn username(&self) -> BotResult<&str> {
-        self.user().map(|user| user.name.as_str())
-    }
-}
-
-impl Authored for ApplicationCommandAutocomplete {
-    #[inline]
-    fn channel_id(&self) -> Id<ChannelMarker> {
-        self.channel_id
-    }
-
-    #[inline]
-    fn guild_id(&self) -> Option<Id<GuildMarker>> {
-        self.guild_id
-    }
-
-    #[inline]
-    fn user(&self) -> BotResult<&User> {
-        self.member
-            .as_ref()
-            .and_then(|member| member.user.as_ref())
-            .or(self.user.as_ref())
-            .ok_or(Error::MissingAuthor)
-    }
-
-    #[inline]
-    fn user_id(&self) -> BotResult<Id<UserMarker>> {
-        self.user().map(|user| user.id)
-    }
-
-    #[inline]
-    fn username(&self) -> BotResult<&str> {
-        self.user().map(|user| user.name.as_str())
     }
 }

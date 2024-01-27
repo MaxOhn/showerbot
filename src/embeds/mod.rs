@@ -1,6 +1,6 @@
 mod osu;
 
-use twilight_model::channel::embed::{Embed, };
+use twilight_model::channel::message::embed::Embed;
 
 pub use self::osu::*;
 

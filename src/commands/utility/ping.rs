@@ -2,10 +2,9 @@ use std::{sync::Arc, time::Instant};
 
 use command_macros::{command, SlashCommand};
 use twilight_interactions::command::CreateCommand;
-use twilight_model::application::interaction::ApplicationCommand;
 
 use crate::{
-    core::{commands::CommandOrigin, Context},
+    core::{commands::CommandOrigin, Context, InteractionCommand},
     util::{builder::MessageBuilder, MessageExt},
     BotResult,
 };
@@ -21,7 +20,7 @@ use crate::{
 /// Check if the bot is online
 pub struct Ping;
 
-async fn slash_ping(ctx: Arc<Context>, command: Box<ApplicationCommand>) -> BotResult<()> {
+async fn slash_ping(ctx: Arc<Context>, command: InteractionCommand) -> BotResult<()> {
     ping(ctx, command.into()).await
 }
 

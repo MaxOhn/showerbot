@@ -1,4 +1,4 @@
-use std::slice;
+use std::{future::IntoFuture, slice};
 
 use twilight_http::response::{marker::EmptyBody, ResponseFuture};
 use twilight_model::{
@@ -33,12 +33,12 @@ impl MessageExt for (Id<MessageMarker>, Id<ChannelMarker>) {
                 .expect("invalid embed");
         }
 
-        req.exec()
+        req.into_future()
     }
 
     #[inline]
     fn delete<'l>(&'l self, ctx: &'l Context) -> ResponseFuture<EmptyBody> {
-        ctx.http.delete_message(self.1, self.0).exec()
+        ctx.http.delete_message(self.1, self.0).into_future()
     }
 }
 

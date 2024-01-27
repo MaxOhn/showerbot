@@ -1,13 +1,11 @@
 pub use self::{
-    application_command::ApplicationCommandExt, authored::Authored, channel::ChannelExt,
+    authored::Authored, channel::ChannelExt, interaction_command::InteractionCommandExt,
     message::MessageExt, score::ScoreExt,
 };
 
-mod application_command;
 mod authored;
-mod autocomplete;
 mod channel;
-mod component;
+mod interaction_command;
 mod map;
 mod message;
 mod score;

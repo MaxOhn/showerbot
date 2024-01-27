@@ -4,13 +4,13 @@ use command_macros::{command, HasMods, SlashCommand};
 use eyre::Report;
 use rosu_v2::error::OsuError;
 use twilight_interactions::command::{CommandModel, CreateCommand};
-use twilight_model::{
-    application::interaction::ApplicationCommand,
-    channel::{message::MessageType, Message},
-};
+use twilight_model::channel::{message::MessageType, Message};
 
 use crate::{
-    core::commands::{prefix::Args, CommandOrigin},
+    core::{
+        commands::{prefix::Args, CommandOrigin},
+        InteractionCommand,
+    },
     embeds::{EmbedData, LeaderboardEmbed},
     pagination::{LeaderboardPagination, Pagination},
     pp::PpCalculator,
@@ -19,7 +19,7 @@ use crate::{
         constants::{AVATAR_URL, GENERAL_ISSUE, OSU_API_ISSUE, OSU_WEB_ISSUE},
         matcher, numbers,
         osu::{MapIdType, ModSelection},
-        ApplicationCommandExt, ChannelExt,
+        ChannelExt, InteractionCommandExt,
     },
     BotResult, Context,
 };
@@ -164,10 +164,7 @@ async fn prefix_nationalleaderboard(
     }
 }
 
-async fn slash_leaderboard(
-    ctx: Arc<Context>,
-    mut command: Box<ApplicationCommand>,
-) -> BotResult<()> {
+async fn slash_leaderboard(ctx: Arc<Context>, mut command: InteractionCommand) -> BotResult<()> {
     let args = Leaderboard::from_interaction(command.input_data())?;
 
     match LeaderboardArgs::try_from(args) {
@@ -180,7 +177,7 @@ async fn slash_leaderboard(
     }
 }
 
-async fn slash_nlb(ctx: Arc<Context>, mut command: Box<ApplicationCommand>) -> BotResult<()> {
+async fn slash_nlb(ctx: Arc<Context>, mut command: InteractionCommand) -> BotResult<()> {
     let args = Nlb::from_interaction(command.input_data())?;
 
     match LeaderboardArgs::try_from(args) {

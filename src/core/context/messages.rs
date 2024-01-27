@@ -14,7 +14,6 @@ impl Context {
             .channel_messages(channel_id)
             .limit(50)
             .unwrap()
-            .exec()
             .await?
             .models()
             .await

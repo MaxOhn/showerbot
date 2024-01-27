@@ -1,10 +1,8 @@
-use std::collections::HashMap;
-
 use twilight_cache_inmemory::{
     model::{CachedGuild, CachedMember},
     GuildResource, InMemoryCache, ResourceType,
 };
-use twilight_gateway::{shard::ResumeSession, Event};
+use twilight_gateway::Event;
 use twilight_model::{
     channel::Channel,
     guild::Role,
@@ -27,7 +25,7 @@ pub struct Cache {
 }
 
 impl Cache {
-    pub async fn new() -> (Self, ResumeData) {
+    pub async fn new() -> Self {
         let resource_types = ResourceType::CHANNEL
             | ResourceType::GUILD
             | ResourceType::MEMBER
@@ -39,10 +37,7 @@ impl Cache {
             .resource_types(resource_types)
             .build();
 
-        let cache = Self { inner };
-        let resume_data = ResumeData::default();
-
-        (cache, resume_data)
+        Self { inner }
     }
 
     pub fn update(&self, event: &Event) {
@@ -65,9 +60,9 @@ impl Cache {
     where
         F: FnOnce(&CurrentUser) -> O,
     {
-        self.inner
-            .current_user_partial(f)
-            .ok_or(CacheMiss::CurrentUser)
+        let user = self.inner.current_user().ok_or(CacheMiss::CurrentUser)?;
+
+        Ok(f(&user))
     }
 
     pub fn guild<F, T>(&self, guild: Id<GuildMarker>, f: F) -> CacheResult<T>
@@ -108,5 +103,3 @@ impl Cache {
         self.guild(guild, |g| g.owner_id() == user)
     }
 }
-
-type ResumeData = HashMap<u64, ResumeSession>;

@@ -3,7 +3,7 @@ use std::path::PathBuf;
 use rosu_v2::prelude::{GameMode, GameMods, Grade, Score};
 use time::OffsetDateTime;
 use tokio::{fs::File, io::AsyncWriteExt};
-use twilight_model::channel::{embed::Embed, Message};
+use twilight_model::channel::{message::embed::Embed, Message};
 
 use crate::{
     core::Context,

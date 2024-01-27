@@ -1,4 +1,4 @@
-use twilight_model::channel::embed::{Embed, EmbedAuthor, EmbedField, EmbedThumbnail};
+use twilight_model::channel::message::embed::{Embed, EmbedAuthor, EmbedField, EmbedThumbnail};
 
 use crate::util::constants::DARK_GREEN;
 

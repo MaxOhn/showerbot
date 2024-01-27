@@ -75,7 +75,6 @@ impl SlashCommands {
             .create_global_command()
             .chat_input(&cmd.name, &cmd.description)?
             .command_options(&options)?
-            .exec()
             .await
             .wrap_err("Failed to create command")?;
 

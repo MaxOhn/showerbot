@@ -1,32 +1,27 @@
-use std::{borrow::Cow, mem, slice};
+use std::{borrow::Cow, future::IntoFuture, mem, slice};
 
 use twilight_http::response::{marker::EmptyBody, ResponseFuture};
 use twilight_interactions::command::CommandInputData;
 use twilight_model::{
-    application::interaction::ApplicationCommand,
-    channel::{message::MessageFlags, Message},
+    channel::Message,
+    guild::Permissions,
     http::interaction::{InteractionResponse, InteractionResponseData, InteractionResponseType},
 };
 
 use crate::{
-    core::Context,
+    core::{Context, InteractionCommand},
     util::{
         builder::{EmbedBuilder, MessageBuilder},
         constants::RED,
     },
 };
 
-pub trait ApplicationCommandExt {
+pub trait InteractionCommandExt {
     /// Extract input data containing options and resolved values
     fn input_data(&mut self) -> CommandInputData<'static>;
 
     /// Ackowledge the command and respond immediatly.
-    fn callback(
-        &self,
-        ctx: &Context,
-        builder: MessageBuilder<'_>,
-        ephemeral: bool,
-    ) -> ResponseFuture<EmptyBody>;
+    fn callback(&self, ctx: &Context, builder: MessageBuilder<'_>) -> ResponseFuture<EmptyBody>;
 
     /// Ackownledge the command but don't respond yet.
     ///
@@ -53,8 +48,7 @@ pub trait ApplicationCommandExt {
     ) -> ResponseFuture<EmptyBody>;
 }
 
-impl ApplicationCommandExt for ApplicationCommand {
-    #[inline]
+impl InteractionCommandExt for InteractionCommand {
     fn input_data(&mut self) -> CommandInputData<'static> {
         CommandInputData {
             options: mem::take(&mut self.data.options),
@@ -62,18 +56,22 @@ impl ApplicationCommandExt for ApplicationCommand {
         }
     }
 
-    #[inline]
-    fn callback(
-        &self,
-        ctx: &Context,
-        builder: MessageBuilder<'_>,
-        ephemeral: bool,
-    ) -> ResponseFuture<EmptyBody> {
+    fn callback(&self, ctx: &Context, builder: MessageBuilder<'_>) -> ResponseFuture<EmptyBody> {
+        let attachments = builder
+            .attachment
+            .filter(|_| {
+                self.permissions.map_or(true, |permissions| {
+                    permissions.contains(Permissions::ATTACH_FILES)
+                })
+            })
+            .map(|attachment| vec![attachment]);
+
         let data = InteractionResponseData {
             components: builder.components,
             content: builder.content.map(|c| c.into_owned()),
             embeds: builder.embed.map(|e| vec![e]),
-            flags: ephemeral.then_some(MessageFlags::EPHEMERAL),
+            flags: None,
+            attachments,
             ..Default::default()
         };
 
@@ -84,10 +82,9 @@ impl ApplicationCommandExt for ApplicationCommand {
 
         ctx.interaction()
             .create_response(self.id, &self.token, &response)
-            .exec()
+            .into_future()
     }
 
-    #[inline]
     fn defer(&self, ctx: &Context) -> ResponseFuture<EmptyBody> {
         let response = InteractionResponse {
             kind: InteractionResponseType::DeferredChannelMessageWithSource,
@@ -96,10 +93,9 @@ impl ApplicationCommandExt for ApplicationCommand {
 
         ctx.interaction()
             .create_response(self.id, &self.token, &response)
-            .exec()
+            .into_future()
     }
 
-    #[inline]
     fn update<'l>(
         &'l self,
         ctx: &'l Context,
@@ -107,23 +103,37 @@ impl ApplicationCommandExt for ApplicationCommand {
     ) -> ResponseFuture<Message> {
         let client = ctx.interaction();
 
-        let mut req = client
-            .update_response(&self.token)
-            .content(builder.content.as_ref().map(Cow::as_ref))
-            .expect("invalid content")
-            .embeds(builder.embed.as_ref().map(slice::from_ref))
-            .expect("invalid embed")
-            .components(builder.components.as_deref())
-            .expect("invalid components");
+        let mut req = client.update_response(&self.token);
 
-        if let Some(ref attachment) = builder.attachment {
+        if let Some(ref content) = builder.content {
+            req = req
+                .content(Some(content.as_ref()))
+                .expect("invalid content");
+        }
+
+        if let Some(ref embed) = builder.embed {
+            req = req
+                .embeds(Some(slice::from_ref(embed)))
+                .expect("invalid embed");
+        }
+
+        if let Some(ref components) = builder.components {
+            req = req
+                .components(Some(components))
+                .expect("invalid components");
+        }
+
+        if let Some(attachment) = builder.attachment.as_ref().filter(|_| {
+            self.permissions.map_or(true, |permissions| {
+                permissions.contains(Permissions::ATTACH_FILES)
+            })
+        }) {
             req = req.attachments(slice::from_ref(attachment)).unwrap();
         }
 
-        req.exec()
+        req.into_future()
     }
 
-    #[inline]
     fn error(&self, ctx: &Context, content: impl Into<String>) -> ResponseFuture<Message> {
         let embed = EmbedBuilder::new().description(content).color(RED).build();
 
@@ -131,10 +141,9 @@ impl ApplicationCommandExt for ApplicationCommand {
             .update_response(&self.token)
             .embeds(Some(&[embed]))
             .expect("invalid embed")
-            .exec()
+            .into_future()
     }
 
-    #[inline]
     fn error_callback(
         &self,
         ctx: &Context,
@@ -154,6 +163,6 @@ impl ApplicationCommandExt for ApplicationCommand {
 
         ctx.interaction()
             .create_response(self.id, &self.token, &response)
-            .exec()
+            .into_future()
     }
 }

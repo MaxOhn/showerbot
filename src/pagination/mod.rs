@@ -9,7 +9,8 @@ use tokio_stream::StreamExt;
 use twilight_gateway::Event;
 use twilight_http::error::ErrorType;
 use twilight_model::{
-    channel::{Message, Reaction, ReactionType},
+    channel::{message::ReactionType, Message},
+    gateway::GatewayReaction,
     id::{marker::UserMarker, Id},
 };
 
@@ -199,10 +200,10 @@ async fn start_pagination<P: Pagination + Send>(
 
     let msg = pagination.msg();
 
-    let delete_fut = ctx.http.delete_all_reactions(msg.channel_id, msg.id).exec();
+    let delete_fut = ctx.http.delete_all_reactions(msg.channel_id, msg.id);
 
     if let Err(err) = delete_fut.await {
-        if matches!(err.kind(), ErrorType::Response { status, .. } if status.raw() == 403) {
+        if matches!(err.kind(), ErrorType::Response { status, .. } if *status == 403) {
             sleep(Duration::from_millis(100)).await;
 
             for emote in &reactions {
@@ -210,7 +211,6 @@ async fn start_pagination<P: Pagination + Send>(
 
                 ctx.http
                     .delete_current_user_reaction(msg.channel_id, msg.id, &request_reaction)
-                    .exec()
                     .await?;
             }
         } else {
@@ -226,7 +226,7 @@ async fn start_pagination<P: Pagination + Send>(
 
 async fn next_page<P: Pagination>(
     pagination: &mut P,
-    reaction: Reaction,
+    reaction: GatewayReaction,
     ctx: &Context,
 ) -> BotResult<()> {
     if process_reaction(pagination, &reaction.emoji).await == PageChange::Change {
@@ -242,7 +242,7 @@ async fn next_page<P: Pagination>(
 
         let builder = data.build();
 
-        update.embeds(Some(&[builder]))?.exec().await?;
+        update.embeds(Some(&[builder]))?.await?;
     }
 
     Ok(())
@@ -314,12 +314,12 @@ async fn process_reaction<P: Pagination>(
 }
 
 enum ReactionWrapper {
-    Add(Reaction),
-    Remove(Reaction),
+    Add(GatewayReaction),
+    Remove(GatewayReaction),
 }
 
 impl ReactionWrapper {
-    fn into_inner(self) -> Reaction {
+    fn into_inner(self) -> GatewayReaction {
         match self {
             Self::Add(r) | Self::Remove(r) => r,
         }

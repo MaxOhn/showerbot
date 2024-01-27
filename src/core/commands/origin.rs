@@ -1,6 +1,5 @@
 use twilight_http::{Error as HttpError, Response};
 use twilight_model::{
-    application::interaction::ApplicationCommand,
     channel::Message,
     id::{
         marker::{ChannelMarker, UserMarker},
@@ -9,9 +8,9 @@ use twilight_model::{
 };
 
 use crate::{
-    core::Context,
+    core::{Context, InteractionCommand},
     error::Error,
-    util::{builder::MessageBuilder, ApplicationCommandExt, Authored, ChannelExt, MessageExt},
+    util::{builder::MessageBuilder, Authored, ChannelExt, InteractionCommandExt, MessageExt},
     BotResult,
 };
 
@@ -19,7 +18,7 @@ type HttpResult<T> = Result<T, HttpError>;
 
 pub enum CommandOrigin<'m> {
     Message { msg: &'m Message },
-    Interaction { command: Box<ApplicationCommand> },
+    Interaction { command: Box<InteractionCommand> },
 }
 
 impl CommandOrigin<'_> {
@@ -38,8 +37,6 @@ impl CommandOrigin<'_> {
     }
 
     /// Respond to something and return the resulting response message.
-    ///
-    /// In case of an interaction, the response will **not** be ephemeral.
     pub async fn callback_with_response(
         &self,
         ctx: &Context,
@@ -48,9 +45,9 @@ impl CommandOrigin<'_> {
         match self {
             Self::Message { msg } => msg.create_message(ctx, &builder).await,
             Self::Interaction { command } => {
-                command.callback(ctx, builder, false).await?;
+                command.callback(ctx, builder).await?;
 
-                ctx.interaction().response(&command.token).exec().await
+                ctx.interaction().response(&command.token).await
             }
         }
     }
@@ -63,13 +60,10 @@ impl CommandOrigin<'_> {
         &self,
         ctx: &Context,
         builder: MessageBuilder<'_>,
-        ephemeral: bool,
     ) -> HttpResult<()> {
         match self {
             Self::Message { msg } => msg.create_message(ctx, &builder).await.map(|_| ()),
-            Self::Interaction { command } => {
-                command.callback(ctx, builder, ephemeral).await.map(|_| ())
-            }
+            Self::Interaction { command } => command.callback(ctx, builder).await.map(|_| ()),
         }
     }
 
@@ -125,10 +119,12 @@ impl CommandOrigin<'_> {
     }
 }
 
-impl From<Box<ApplicationCommand>> for CommandOrigin<'_> {
+impl From<InteractionCommand> for CommandOrigin<'_> {
     #[inline]
-    fn from(command: Box<ApplicationCommand>) -> Self {
-        Self::Interaction { command }
+    fn from(command: InteractionCommand) -> Self {
+        Self::Interaction {
+            command: Box::new(command),
+        }
     }
 }
 

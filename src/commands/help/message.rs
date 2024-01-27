@@ -4,7 +4,7 @@ use command_macros::command;
 use eyre::Report;
 use hashbrown::HashSet;
 use tokio::time::{interval, MissedTickBehavior};
-use twilight_model::channel::{embed::EmbedField, Message};
+use twilight_model::channel::{message::embed::EmbedField, Message};
 
 use crate::{
     core::{
@@ -168,7 +168,7 @@ macro_rules! send_chunk {
 
 async fn dm_help(ctx: Arc<Context>, msg: &Message) -> BotResult<()> {
     let owner = msg.author.id;
-    let channel_result = ctx.http.create_private_channel(owner).exec().await;
+    let channel_result = ctx.http.create_private_channel(owner).await;
 
     let channel = match channel_result {
         Ok(channel_res) => channel_res.model().await?.id,

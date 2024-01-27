@@ -1,4 +1,4 @@
-use std::slice;
+use std::{future::IntoFuture, slice};
 
 use twilight_http::response::ResponseFuture;
 use twilight_model::{
@@ -49,10 +49,12 @@ impl ChannelExt for Id<ChannelMarker> {
             req = req.components(components).expect("invalid components");
         }
 
-        match builder.attachment {
-            Some(ref attachment) => req.attachments(slice::from_ref(attachment)).unwrap().exec(),
-            None => req.exec(),
-        }
+        let req = match builder.attachment {
+            Some(ref attachment) => req.attachments(slice::from_ref(attachment)).unwrap(),
+            None => req,
+        };
+
+        req.into_future()
     }
 
     #[inline]
@@ -63,7 +65,7 @@ impl ChannelExt for Id<ChannelMarker> {
             .create_message(*self)
             .embeds(&[embed])
             .expect("invalid embed")
-            .exec()
+            .into_future()
     }
 
     #[inline]
@@ -72,7 +74,7 @@ impl ChannelExt for Id<ChannelMarker> {
             .create_message(*self)
             .content(content)
             .expect("invalid content")
-            .exec()
+            .into_future()
     }
 }
 

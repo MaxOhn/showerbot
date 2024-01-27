@@ -1,3 +1,4 @@
+use twilight_gateway::stream::StartRecommendedError;
 use twilight_validate::message::MessageValidationError;
 
 pub use self::{map_file::MapFileError, pp::PpError};
@@ -16,10 +17,6 @@ macro_rules! bail {
 pub enum Error {
     #[error("missing value in cache")]
     Cache(#[from] crate::core::CacheMiss),
-    #[error("error occured on cluster request")]
-    ClusterCommand(#[from] twilight_gateway::cluster::ClusterCommandError),
-    #[error("failed to start cluster")]
-    ClusterStart(#[from] twilight_gateway::cluster::ClusterStartError),
     #[error("custom client error")]
     CustomClient(#[from] crate::custom_client::CustomClientError),
     #[error("fmt error")]
@@ -50,8 +47,8 @@ pub enum Error {
     ReactionRatelimit(usize),
     #[error("serde json error")]
     Json(#[from] serde_json::Error),
-    #[error("shard command error")]
-    ShardCommand(#[from] twilight_gateway::shard::CommandError),
+    #[error("failed to create recommended amount shard")]
+    StartRecommended(StartRecommendedError),
     #[error("twilight failed to deserialize response")]
     TwilightDeserialize(#[from] twilight_http::response::DeserializeBodyError),
     #[error("error while making discord request")]

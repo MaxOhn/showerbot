@@ -3,11 +3,12 @@ use std::{
     sync::Arc,
 };
 
-use eyre::Context as EyreContext;
 use futures::StreamExt;
-use twilight_gateway::{cluster::Events, Event};
+use twilight_gateway::{stream::ShardEventStream, Event, Shard};
 
 use crate::{util::Authored, BotResult};
+
+pub use self::interaction::InteractionCommand;
 
 use self::{interaction::handle_interaction, message::handle_message};
 
@@ -62,33 +63,42 @@ impl Display for CommandLocation<'_> {
     }
 }
 
-pub async fn event_loop(ctx: Arc<Context>, mut events: Events) {
-    while let Some((shard_id, event)) = events.next().await {
-        ctx.cache.update(&event);
-        ctx.standby.process(&event);
-        let ctx = Arc::clone(&ctx);
+pub async fn event_loop(ctx: Arc<Context>, shards: &mut Vec<Shard>) {
+    let mut stream = ShardEventStream::new(shards.iter_mut());
 
-        tokio::spawn(async move {
-            let handle_fut = handle_event(ctx, event, shard_id);
+    // actual event loop
+    'event_loop: loop {
+        let err = match stream.next().await {
+            Some((shard, Ok(event))) => {
+                ctx.standby.process(&event);
+                ctx.cache.update(&event);
+                let ctx = Arc::clone(&ctx);
+                let shard_id = shard.id().number();
 
-            if let Err(report) = handle_fut.await.wrap_err("error while handling event") {
-                error!("{report:?}");
+                tokio::spawn(async move {
+                    if let Err(err) = handle_event(ctx, event, shard_id).await {
+                        error!(?err, "Failed to handle event");
+                    }
+                });
+
+                continue 'event_loop;
             }
-        });
+            Some((_, Err(err))) => Some(err),
+            None => return,
+        };
+
+        if let Some(err) = err {
+            error!(%err, "Event error");
+
+            if err.is_fatal() {
+                return;
+            }
+        }
     }
 }
 
 async fn handle_event(ctx: Arc<Context>, event: Event, shard_id: u64) -> BotResult<()> {
     match event {
-        Event::BanAdd(_) => {}
-        Event::BanRemove(_) => {}
-        Event::ChannelCreate(_) => {}
-        Event::ChannelDelete(_) => {}
-        Event::ChannelPinsUpdate(_) => {}
-        Event::ChannelUpdate(_) => {}
-        Event::GatewayHeartbeat(_) => {}
-        Event::GatewayHeartbeatAck => {}
-        Event::GatewayHello(_) => {}
         Event::GatewayInvalidateSession(reconnect) => {
             if reconnect {
                 warn!(
@@ -101,64 +111,11 @@ async fn handle_event(ctx: Arc<Context>, event: Event, shard_id: u64) -> BotResu
         Event::GatewayReconnect => {
             info!("Gateway requested shard {shard_id} to reconnect");
         }
-        Event::GiftCodeUpdate => {}
-        Event::GuildCreate(_) => {}
-        Event::GuildDelete(_) => {}
-        Event::GuildEmojisUpdate(_) => {}
-        Event::GuildIntegrationsUpdate(_) => {}
-        Event::GuildStickersUpdate(_) => {}
-        Event::GuildUpdate(_) => {}
-        Event::IntegrationCreate(_) => {}
-        Event::IntegrationDelete(_) => {}
-        Event::IntegrationUpdate(_) => {}
         Event::InteractionCreate(e) => handle_interaction(ctx, e.0).await,
-        Event::InviteCreate(_) => {}
-        Event::InviteDelete(_) => {}
-        Event::MemberAdd(_) => {}
-        Event::MemberRemove(_) => {}
-        Event::MemberUpdate(_) => {}
-        Event::MemberChunk(_) => {}
-        Event::MessageCreate(msg) => {
-            handle_message(ctx, msg.0).await;
-        }
-        Event::MessageDelete(_) => {}
-        Event::MessageDeleteBulk(_) => {}
-        Event::MessageUpdate(_) => {}
-        Event::PresenceUpdate(_) => {}
-        Event::PresencesReplace => {}
-        Event::ReactionAdd(_) => {}
-        Event::ReactionRemove(_) => {}
-        Event::ReactionRemoveAll(_) => {}
-        Event::ReactionRemoveEmoji(_) => {}
-        Event::Ready(_) => {
-            info!("Shard {shard_id} is ready");
-        }
+        Event::MessageCreate(msg) => handle_message(ctx, msg.0).await,
+        Event::Ready(_) => info!("Shard {shard_id} is ready"),
         Event::Resumed => info!("Shard {shard_id} is resumed"),
-        Event::RoleCreate(_) => {}
-        Event::RoleDelete(_) => {}
-        Event::RoleUpdate(_) => {}
-        Event::ShardConnected(_) => info!("Shard {shard_id} is connected"),
-        Event::ShardConnecting(_) => info!("Shard {shard_id} is connecting..."),
-        Event::ShardDisconnected(_) => info!("Shard {shard_id} is disconnected"),
-        Event::ShardIdentifying(_) => info!("Shard {shard_id} is identifying..."),
-        Event::ShardReconnecting(_) => info!("Shard {shard_id} is reconnecting..."),
-        Event::ShardPayload(_) => {}
-        Event::ShardResuming(_) => info!("Shard {shard_id} is resuming..."),
-        Event::StageInstanceCreate(_) => {}
-        Event::StageInstanceDelete(_) => {}
-        Event::StageInstanceUpdate(_) => {}
-        Event::ThreadCreate(_) => {}
-        Event::ThreadDelete(_) => {}
-        Event::ThreadListSync(_) => {}
-        Event::ThreadMemberUpdate(_) => {}
-        Event::ThreadMembersUpdate(_) => {}
-        Event::ThreadUpdate(_) => {}
-        Event::TypingStart(_) => {}
-        Event::UnavailableGuild(_) => {}
-        Event::UserUpdate(_) => {}
-        Event::VoiceServerUpdate(_) => {}
-        Event::VoiceStateUpdate(_) => {}
-        Event::WebhooksUpdate(_) => {}
+        _ => {}
     }
 
     Ok(())

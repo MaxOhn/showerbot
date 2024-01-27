@@ -1,7 +1,6 @@
 use std::{mem, sync::Arc};
 
 use eyre::Report;
-use twilight_model::application::interaction::ApplicationCommand;
 
 use crate::{
     core::{
@@ -9,13 +8,15 @@ use crate::{
         events::{log_command, ProcessResult},
         Context,
     },
-    util::ApplicationCommandExt,
+    util::InteractionCommandExt,
     BotResult,
 };
 
-pub async fn handle_command(ctx: Arc<Context>, mut command: Box<ApplicationCommand>) {
+use super::InteractionCommand;
+
+pub async fn handle_command(ctx: Arc<Context>, mut command: InteractionCommand) {
     let name = mem::take(&mut command.data.name);
-    log_command(&ctx, &*command, &name);
+    log_command(&ctx, &command, &name);
 
     let slash = match SLASH_COMMANDS.command(&name) {
         Some(slash) => slash,
@@ -34,7 +35,7 @@ pub async fn handle_command(ctx: Arc<Context>, mut command: Box<ApplicationComma
 
 async fn process_command(
     ctx: Arc<Context>,
-    command: Box<ApplicationCommand>,
+    command: InteractionCommand,
     slash: &SlashCommand,
 ) -> BotResult<ProcessResult> {
     if slash.flags.defer() {

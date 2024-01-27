@@ -59,7 +59,7 @@ async fn async_main() -> eyre::Result<()> {
     // Load config file
     core::BotConfig::init().context("failed to initialize config")?;
 
-    let (ctx, events) = Context::new().await.context("failed to create ctx")?;
+    let (ctx, mut shards) = Context::new().await.context("failed to create ctx")?;
 
     let ctx = Arc::new(ctx);
 
@@ -72,10 +72,9 @@ async fn async_main() -> eyre::Result<()> {
         .wrap_err("failed to register slash commands")?;
 
     let event_ctx = Arc::clone(&ctx);
-    ctx.cluster.up().await;
 
     tokio::select! {
-        _ = event_loop(event_ctx, events) => error!("Event loop ended"),
+        _ = event_loop(event_ctx, &mut shards) => error!("Event loop ended"),
         res = signal::ctrl_c() => if let Err(report) = res.wrap_err("error while awaiting ctrl+c") {
             error!("{report:?}");
         } else {
@@ -83,7 +82,7 @@ async fn async_main() -> eyre::Result<()> {
         },
     }
 
-    ctx.cluster.down();
+    Context::down(&mut shards).await;
 
     info!("Shutting down");
 

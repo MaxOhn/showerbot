@@ -76,10 +76,9 @@ pub async fn send_reaction(ctx: &Context, msg: &Message, emote: Emote) -> BotRes
     let emoji = &emote.request_reaction_type();
 
     // Initial attempt, return if it's not a 429
-    match ctx.http.create_reaction(channel, msg, emoji).exec().await {
+    match ctx.http.create_reaction(channel, msg, emoji).await {
         Ok(_) => return Ok(()),
-        Err(e) if matches!(e.kind(), ErrorType::Response { status, .. } if status.raw() == 429) => {
-        }
+        Err(e) if matches!(e.kind(), ErrorType::Response { status, .. } if *status == 429) => {}
         Err(e) => return Err(e.into()),
     }
 
@@ -92,10 +91,9 @@ pub async fn send_reaction(ctx: &Context, msg: &Message, emote: Emote) -> BotRes
         debug!("Send reaction retry attempt #{i} | Backoff {duration:?}");
         sleep(duration).await;
 
-        match ctx.http.create_reaction(channel, msg, emoji).exec().await {
+        match ctx.http.create_reaction(channel, msg, emoji).await {
             Ok(_) => return Ok(()),
-            Err(e) if matches!(e.kind(), ErrorType::Response { status, .. } if status.raw() == 429) =>
-                {}
+            Err(e) if matches!(e.kind(), ErrorType::Response { status, .. } if *status == 429) => {}
             Err(e) => return Err(e.into()),
         };
     }
