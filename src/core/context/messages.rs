@@ -1,9 +1,6 @@
 use twilight_model::{
     channel::Message,
-    id::{
-        marker::{ChannelMarker, MessageMarker},
-        Id,
-    },
+    id::{marker::ChannelMarker, Id},
 };
 
 use crate::{BotResult, Context, Error};
@@ -22,17 +19,5 @@ impl Context {
             .models()
             .await
             .map_err(Error::from)
-    }
-
-    /// Store a message id to register whether the message is not yet
-    /// deleted on a later point when calling `remove_msg`.
-    pub fn store_msg(&self, msg: Id<MessageMarker>) {
-        self.data.msgs_to_process.insert(msg);
-    }
-
-    /// Returns false if either `store_msg` was not called for the message id
-    /// or if the message was deleted between the `store_msg` call and this call.
-    pub fn remove_msg(&self, msg: Id<MessageMarker>) -> bool {
-        self.data.msgs_to_process.remove(&msg).is_some()
     }
 }

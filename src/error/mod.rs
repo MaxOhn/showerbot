@@ -22,8 +22,6 @@ pub enum Error {
     ClusterStart(#[from] twilight_gateway::cluster::ClusterStartError),
     #[error("custom client error")]
     CustomClient(#[from] crate::custom_client::CustomClientError),
-    #[error("database error")]
-    Database(#[from] sqlx::Error),
     #[error("fmt error")]
     Fmt(#[from] std::fmt::Error),
     #[error("io error")]

@@ -27,7 +27,7 @@ use crate::{
 use super::{HasMods, ModsResult};
 
 #[derive(CommandModel, CreateCommand, SlashCommand)]
-#[command(name = "leaderboard")]
+#[command(name = "nationalleaderboard")]
 /// Display the national leaderboard of a map (same as `/nlb`)
 pub struct Leaderboard<'a> {
     #[command(help = "Specify a map either by map url or map id.\n\
@@ -244,31 +244,21 @@ async fn leaderboard(
     };
 
     // Retrieving the beatmap
-    let mut map = match ctx.psql().get_beatmap(map_id, true).await {
+    let mut map = match ctx.osu().beatmap().map_id(map_id).await {
         Ok(map) => map,
-        Err(_) => match ctx.osu().beatmap().map_id(map_id).await {
-            Ok(map) => {
-                // Add map to database if its not in already
-                if let Err(err) = ctx.psql().insert_beatmap(&map).await {
-                    warn!("{:?}", Report::new(err));
-                }
+        Err(OsuError::NotFound) => {
+            let content = format!(
+                "Could not find beatmap with id `{map_id}`. \
+                Did you give me a mapset id instead of a map id?",
+            );
 
-                map
-            }
-            Err(OsuError::NotFound) => {
-                let content = format!(
-                    "Could not find beatmap with id `{map_id}`. \
-                    Did you give me a mapset id instead of a map id?",
-                );
+            return orig.error(&ctx, content).await;
+        }
+        Err(err) => {
+            let _ = orig.error(&ctx, OSU_API_ISSUE).await;
 
-                return orig.error(&ctx, content).await;
-            }
-            Err(err) => {
-                let _ = orig.error(&ctx, OSU_API_ISSUE).await;
-
-                return Err(err.into());
-            }
-        },
+            return Err(err.into());
+        }
     };
 
     if let Some(ModSelection::Include(m) | ModSelection::Exact(m)) = mods {

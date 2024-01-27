@@ -1,8 +1,10 @@
 use std::pin::Pin;
 
+use eyre::{Result, WrapErr};
 use futures::Future;
 use radix_trie::{Trie, TrieCommon};
-use twilight_model::application::command::Command;
+use twilight_http::client::InteractionClient;
+use twilight_interactions::command::{ApplicationCommandData, CommandOptionExt};
 
 use crate::{
     commands::{osu::*, utility::*},
@@ -44,7 +46,39 @@ impl SlashCommands {
         self.0.get(command).copied()
     }
 
-    pub fn collect(&self) -> Vec<Command> {
-        self.0.values().map(|c| (c.create)().into()).collect()
+    pub async fn register(&self, client: &InteractionClient<'_>) -> Result<()> {
+        info!("Creating {} interaction commands...", self.0.len());
+
+        for cmd in self.0.values() {
+            let cmd = (cmd.create)();
+            let name = cmd.name.clone();
+
+            Self::register_slash_command(cmd, client)
+                .await
+                .wrap_err_with(|| format!("Failed to register slash command `{name}`"))?
+        }
+
+        Ok(())
+    }
+
+    async fn register_slash_command(
+        cmd: ApplicationCommandData,
+        client: &InteractionClient<'_>,
+    ) -> Result<()> {
+        let options: Vec<_> = cmd
+            .options
+            .into_iter()
+            .map(CommandOptionExt::into)
+            .collect();
+
+        client
+            .create_global_command()
+            .chat_input(&cmd.name, &cmd.description)?
+            .command_options(&options)?
+            .exec()
+            .await
+            .wrap_err("Failed to create command")?;
+
+        Ok(())
     }
 }

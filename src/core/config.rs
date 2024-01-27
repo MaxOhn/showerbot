@@ -12,23 +12,18 @@ use crate::{util::Emote, BotResult, Error};
 
 pub static CONFIG: OnceCell<BotConfig> = OnceCell::new();
 
-#[derive(Debug)]
 pub struct BotConfig {
-    pub database_url: String,
     pub tokens: Tokens,
     pub paths: Paths,
     grades: [String; 9],
     pub emotes: HashMap<Emote, String>,
-    pub owner: Id<UserMarker>,
-    pub dev_guild: Id<GuildMarker>,
+    pub prefixes: Box<[Box<str>]>,
 }
 
-#[derive(Debug)]
 pub struct Paths {
     pub maps: PathBuf,
 }
 
-#[derive(Debug)]
 pub struct Tokens {
     pub discord: String,
     pub osu_client_id: u64,
@@ -80,8 +75,19 @@ impl BotConfig {
             })
             .collect::<BotResult<_>>()?;
 
+        let Prefixes(prefixes) =
+            env_var("PREFIX")
+                .or_else(|_| env_var("PREFIXES"))
+                .map_err(|e| match e {
+                    Error::ParsingEnvVariable { name, value, .. } => Error::ParsingEnvVariable {
+                        name,
+                        value,
+                        expected: "string of whitespace-separated prefixes",
+                    },
+                    e => e,
+                })?;
+
         let config = BotConfig {
-            database_url: env_var("DATABASE_URL")?,
             tokens: Tokens {
                 discord: env_var("DISCORD_TOKEN")?,
                 osu_client_id: env_var("OSU_CLIENT_ID")?,
@@ -93,8 +99,7 @@ impl BotConfig {
             },
             grades,
             emotes,
-            owner: env_var("OWNER_USER_ID")?,
-            dev_guild: env_var("DEV_GUILD_ID")?,
+            prefixes,
         };
 
         if CONFIG.set(config).is_err() {
@@ -137,6 +142,15 @@ env_kind! {
     Id<UserMarker>: s => { s.parse().ok().map(Id::new) },
     Id<GuildMarker>: s => { s.parse().ok().map(Id::new) },
     Id<ChannelMarker>: s => { s.parse().ok().map(Id::new) },
+    Prefixes: s => {
+        let prefixes = s
+            .split_whitespace()
+            .filter(|s| !s.is_empty())
+            .map(Box::from)
+            .collect();
+
+        Some(Prefixes(prefixes))
+    },
     [u8; 4]: s => {
         if !(s.starts_with('[') && s.ends_with(']')) {
             return None
@@ -164,3 +178,5 @@ fn env_var<T: EnvKind>(name: &'static str) -> BotResult<T> {
         expected: T::EXPECTED,
     })
 }
+
+struct Prefixes(Box<[Box<str>]>);

@@ -5,10 +5,6 @@ use rosu_v2::prelude::{GameMods, UserId as OsuUserId};
 
 use super::{constants::OSU_BASE, osu::ModSelection};
 
-pub fn is_custom_emote(msg: &str) -> bool {
-    EMOJI_MATCHER.is_match(msg)
-}
-
 #[allow(dead_code)]
 pub fn get_osu_user_id(msg: &str) -> Option<OsuUserId> {
     OSU_URL_USER_MATCHER.captures(msg).and_then(|c| {
@@ -92,19 +88,10 @@ lazy_static::lazy_static! {
     static ref OSU_URL_MAPSET_OLD_MATCHER: Regex =
         Regex::new(r"https://osu.ppy.sh/s/(\d+)").unwrap();
 
-    static ref OSU_URL_MATCH_MATCHER: Regex =
-        Regex::new(r"https://osu.ppy.sh/(?:community/matches|mp)/(\d+)").unwrap();
-
     static ref MOD_PLUS_MATCHER: Regex = Regex::new(r"^\+(\w+)!?$").unwrap();
     static ref MOD_MINUS_MATCHER: Regex = Regex::new(r"^-(\w+)!$").unwrap();
-
-    static ref EMOJI_MATCHER: Regex = Regex::new(r"<(a?):([^:\n]+):(\d+)>").unwrap();
-
-    static ref IGNORE_BADGE_MATCHER: Regex = Regex::new(r"^((?i)contrib|nomination|assessment|global|moderation|beatmap|spotlight|map|pending|aspire|elite|monthly|exemplary|outstanding|longstanding|idol[^@]+)").unwrap();
 
     static ref SEVEN_TWO_SEVEN: Regex = Regex::new("(?P<num>7[.,]?2[.,]?7)").unwrap();
 
     static ref OSU_SCORE_URL_MATCHER: Regex = Regex::new(r"https://osu.ppy.sh/scores/(osu|taiko|mania|fruits)/(\d+)").unwrap();
-
-    pub static ref QUERY_SYNTAX_REGEX: Regex = Regex::new(r#"\b(?P<key>\w+)(?P<op>(:|=|(>|<)(:|=)?))(?P<value>("".*"")|(\S*))"#).unwrap();
 }

@@ -11,8 +11,8 @@ pub const MAP_THUMB_URL: &str = "https://b.ppy.sh/thumb/";
 pub const AVATAR_URL: &str = "https://a.ppy.sh/";
 
 // Error messages
-pub const GENERAL_ISSUE: &str = "Something went wrong, blame bade";
-pub const OSU_API_ISSUE: &str = "Some issue with the osu api, blame bade";
+pub const GENERAL_ISSUE: &str = "Something went wrong";
+pub const OSU_API_ISSUE: &str = "Some issue with the osu api";
 pub const OSU_WEB_ISSUE: &str = "Some issue with the osu website, DDoS protection?";
 
 // Misc

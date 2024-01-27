@@ -4,15 +4,12 @@ use command_macros::command;
 use eyre::Report;
 use hashbrown::HashSet;
 use tokio::time::{interval, MissedTickBehavior};
-use twilight_model::{
-    channel::{embed::EmbedField, Message},
-    id::{marker::GuildMarker, Id},
-};
+use twilight_model::channel::{embed::EmbedField, Message};
 
 use crate::{
     core::{
         commands::prefix::{PrefixCommand, PREFIX_COMMANDS},
-        Context, CONFIG,
+        Context,
     },
     util::{
         builder::{EmbedBuilder, FooterBuilder, MessageBuilder},
@@ -29,7 +26,7 @@ use super::failed_message_content;
 #[group(Utility)]
 #[alias("h")]
 #[usage("[command]")]
-#[example("", "recent", "osg")]
+#[example("", "nlb")]
 async fn prefix_help(ctx: Arc<Context>, msg: &Message, mut args: Args<'_>) -> BotResult<()> {
     match args.next() {
         Some(arg) => match PREFIX_COMMANDS.command(arg) {
@@ -59,7 +56,7 @@ async fn failed_help(ctx: Arc<Context>, msg: &Message, name: &str) -> BotResult<
 
 async fn command_help(ctx: Arc<Context>, msg: &Message, cmd: &PrefixCommand) -> BotResult<()> {
     let name = cmd.name();
-    let prefix = ctx.guild_first_prefix(msg.guild_id).await;
+    let mention = "@PingMe";
     let mut fields = Vec::new();
 
     let eb = EmbedBuilder::new()
@@ -69,7 +66,7 @@ async fn command_help(ctx: Arc<Context>, msg: &Message, cmd: &PrefixCommand) -> 
     let mut usage_len = 0;
 
     if let Some(usage) = cmd.usage {
-        let value = format!("`{prefix}{name} {usage}`");
+        let value = format!("`{mention} {name} {usage}`");
         usage_len = value.chars().count();
 
         let field = EmbedField {
@@ -87,11 +84,11 @@ async fn command_help(ctx: Arc<Context>, msg: &Message, cmd: &PrefixCommand) -> 
         let len: usize = cmd.examples.iter().map(|&e| name.len() + e.len() + 4).sum();
         let mut value = String::with_capacity(len);
         let mut example_len = 0;
-        let cmd_len = prefix.chars().count() + name.chars().count();
-        writeln!(value, "`{prefix}{name} {first}`")?;
+        let cmd_len = mention.chars().count() + name.chars().count();
+        writeln!(value, "`{mention} {name} {first}`")?;
 
         for example in examples {
-            writeln!(value, "`{prefix}{name} {example}`")?;
+            writeln!(value, "`{mention} {name} {example}`")?;
             example_len = example_len.max(cmd_len + example.chars().count());
         }
 
@@ -128,12 +125,7 @@ async fn command_help(ctx: Arc<Context>, msg: &Message, cmd: &PrefixCommand) -> 
         fields.push(field);
     }
 
-    let footer_text = if cmd.flags.only_guilds() || cmd.flags.authority() {
-        "Only available in servers"
-    } else {
-        "Available in servers and DMs"
-    };
-
+    let footer_text = "Available in servers and DMs";
     let footer = FooterBuilder::new(footer_text);
 
     let embed = eb.footer(footer).fields(fields).build();
@@ -144,40 +136,9 @@ async fn command_help(ctx: Arc<Context>, msg: &Message, cmd: &PrefixCommand) -> 
     Ok(())
 }
 
-async fn description(ctx: &Context, guild_id: Option<Id<GuildMarker>>) -> String {
-    let custom_prefix = if let Some(guild_id) = guild_id {
-        let mut prefixes = ctx.guild_prefixes(guild_id).await;
-
-        if !prefixes.is_empty() {
-            let prefix = prefixes.swap_remove(0);
-
-            if prefix == "<" && prefixes.len() == 1 {
-                None
-            } else {
-                let prefix_iter = prefixes.iter();
-                let mut prefixes_str = String::with_capacity(9);
-                let _ = write!(prefixes_str, "`{prefix}`");
-
-                for prefix in prefix_iter {
-                    let _ = write!(prefixes_str, ", `{prefix}`");
-                }
-
-                Some(prefixes_str)
-            }
-        } else {
-            None
-        }
-    } else {
-        None
-    };
-
-    let prefix_desc = custom_prefix.map_or_else(
-        || String::from("Prefix: `<` (none required in DMs)"),
-        |p| format!("Server prefix: {p}\nDM prefix: `<` or none at all"),
-    );
-
+fn description() -> String {
     format!(
-        "{prefix_desc}\n\
+        "To use message commands, ping me with the command name, e.g. `@PingMe nlb`.\n\
         This bot is based on [Bathbot]({BATHBOT_GITHUB}) with its main \
         functionality being the national map leaderboard.\n\
         - To find out more about a command like what arguments you can give or which shorter aliases it has, \
@@ -228,9 +189,7 @@ async fn dm_help(ctx: Arc<Context>, msg: &Message) -> BotResult<()> {
         let _ = msg.create_message(&ctx, &builder).await;
     }
 
-    let is_owner = owner == CONFIG.get().unwrap().owner;
-    let mut buf = description(&ctx, msg.guild_id).await;
-
+    let mut buf = description();
     let mut size = buf.len();
     let mut next_size;
 
@@ -250,7 +209,7 @@ async fn dm_help(ctx: Arc<Context>, msg: &Message) -> BotResult<()> {
     for cmd in cmds {
         let name = cmd.name();
 
-        next_size = (cmd.flags.authority()) as usize * 4 + 5 + name.len() + cmd.desc.len();
+        next_size = 5 + name.len() + cmd.desc.len();
 
         if size + next_size > DESCRIPTION_SIZE {
             send_chunk!(ctx, channel, buf, interval);
@@ -259,17 +218,7 @@ async fn dm_help(ctx: Arc<Context>, msg: &Message) -> BotResult<()> {
         }
 
         size += next_size;
-
-        let _ = writeln!(
-            buf,
-            "{strikethrough}`{name}`{strikethrough}: {}",
-            cmd.desc,
-            strikethrough = if cmd.flags.only_owner() && !is_owner {
-                "~~"
-            } else {
-                ""
-            }
-        );
+        let _ = writeln!(buf, "`{name}`: {}", cmd.desc,);
     }
 
     if !buf.is_empty() {

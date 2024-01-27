@@ -15,7 +15,7 @@ use twilight_model::{
     user::CurrentUser,
 };
 
-pub use self::{error::CacheMiss, permissions::RolesLookup};
+pub use self::error::CacheMiss;
 
 mod error;
 mod permissions;

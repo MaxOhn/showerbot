@@ -36,7 +36,6 @@ lazy_static::lazy_static! {
             HELP_PREFIX,
             NATIONALLEADERBOARD_PREFIX,
             PING_PREFIX,
-            PREFIX_PREFIX,
         }
     };
 }

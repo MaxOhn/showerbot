@@ -32,10 +32,6 @@ impl<'m> Args<'m> {
         Self { msg, stream, num }
     }
 
-    pub fn is_empty(&self) -> bool {
-        self.stream.is_empty()
-    }
-
     fn lex(&mut self) -> Option<(usize, usize)> {
         let stream = &mut self.stream;
         let start = stream.offset();

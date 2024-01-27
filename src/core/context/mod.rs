@@ -1,29 +1,18 @@
 use std::sync::Arc;
 
-use dashmap::DashSet;
-use flurry::HashMap as FlurryMap;
 use rosu_v2::Osu;
 use twilight_gateway::{cluster::Events, Cluster};
 use twilight_http::{client::InteractionClient, Client};
 use twilight_model::{
     channel::message::allowed_mentions::AllowedMentionsBuilder,
-    id::{
-        marker::{ApplicationMarker, GuildMarker, MessageMarker},
-        Id,
-    },
+    id::{marker::ApplicationMarker, Id},
 };
 use twilight_standby::Standby;
 
-use crate::{
-    core::CONFIG,
-    custom_client::CustomClient,
-    database::{Database, GuildConfig},
-    BotResult,
-};
+use crate::{core::CONFIG, custom_client::CustomClient, BotResult};
 
 use super::{cluster::build_cluster, Cache};
 
-mod configs;
 mod messages;
 
 pub struct Context {
@@ -31,22 +20,17 @@ pub struct Context {
     pub cluster: Cluster,
     pub http: Arc<Client>,
     pub standby: Standby,
-    // private to avoid deadlocks by messing up references
-    data: ContextData,
+    pub application_id: Id<ApplicationMarker>,
     clients: Clients,
 }
 
 impl Context {
     pub fn interaction(&self) -> InteractionClient<'_> {
-        self.http.interaction(self.data.application_id)
+        self.http.interaction(self.application_id)
     }
 
     pub fn osu(&self) -> &Osu {
         &self.clients.osu
-    }
-
-    pub fn psql(&self) -> &Database {
-        &self.clients.psql
     }
 
     /// Returns the custom client
@@ -81,9 +65,6 @@ impl Context {
             current_user.name, current_user.discriminator
         );
 
-        // Connect to psql database
-        let psql = Database::new(&config.database_url)?;
-
         // Connect to osu! API
         let osu_client_id = config.tokens.osu_client_id;
         let osu_client_secret = &config.tokens.osu_client_secret;
@@ -92,10 +73,9 @@ impl Context {
         // Log custom client into osu!
         let custom = CustomClient::new(config).await?;
 
-        let data = ContextData::new(&psql, application_id).await?;
         let (cache, resume_data) = Cache::new().await;
 
-        let clients = Clients::new(psql, osu, custom);
+        let clients = Clients::new(osu, custom);
         let (cluster, events) =
             build_cluster(discord_token, Arc::clone(&http), resume_data).await?;
 
@@ -104,7 +84,7 @@ impl Context {
             http,
             clients,
             cluster,
-            data,
+            application_id,
             standby: Standby::new(),
         };
 
@@ -115,27 +95,10 @@ impl Context {
 struct Clients {
     custom: CustomClient,
     osu: Osu,
-    psql: Database,
 }
 
 impl Clients {
-    fn new(psql: Database, osu: Osu, custom: CustomClient) -> Self {
-        Self { psql, osu, custom }
-    }
-}
-
-struct ContextData {
-    application_id: Id<ApplicationMarker>,
-    guilds: FlurryMap<Id<GuildMarker>, GuildConfig>, // read-heavy
-    msgs_to_process: DashSet<Id<MessageMarker>>,
-}
-
-impl ContextData {
-    async fn new(psql: &Database, application_id: Id<ApplicationMarker>) -> BotResult<Self> {
-        Ok(Self {
-            application_id,
-            guilds: psql.get_guilds().await?,
-            msgs_to_process: DashSet::new(),
-        })
+    fn new(osu: Osu, custom: CustomClient) -> Self {
+        Self { osu, custom }
     }
 }

@@ -1,7 +1,6 @@
 pub use self::{
-    application_command::ApplicationCommandExt, authored::Authored, autocomplete::AutocompleteExt,
-    channel::ChannelExt, component::ComponentExt, map::BeatmapExt, message::MessageExt,
-    score::ScoreExt,
+    application_command::ApplicationCommandExt, authored::Authored, channel::ChannelExt,
+    message::MessageExt, score::ScoreExt,
 };
 
 mod application_command;

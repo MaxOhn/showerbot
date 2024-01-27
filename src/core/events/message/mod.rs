@@ -6,9 +6,8 @@ use twilight_model::{channel::Message, guild::Permissions};
 use crate::{
     core::{
         commands::prefix::{Args, PrefixCommand, Stream},
-        Context, CONFIG,
+        Context,
     },
-    util::ChannelExt,
     BotResult,
 };
 
@@ -28,10 +27,8 @@ pub async fn handle_message(ctx: Arc<Context>, msg: Message) {
     let mut stream = Stream::new(&msg.content);
     stream.take_while_char(char::is_whitespace);
 
-    let prefix = match msg.guild_id {
-        Some(guild_id) => ctx.guild_prefixes_find(guild_id, &stream).await,
-        None => stream.starts_with("<").then(|| "<".into()),
-    };
+    // TODO: does msg contain ping to the bot
+    let prefix = None::<&str>;
 
     if let Some(prefix) = prefix {
         stream.increment(prefix.len());
@@ -65,22 +62,6 @@ async fn process_command(
     stream: Stream<'_>,
     num: Option<u64>,
 ) -> BotResult<ProcessResult> {
-    // Only in guilds?
-    if (cmd.flags.authority() || cmd.flags.only_guilds()) && msg.guild_id.is_none() {
-        let content = "That command is only available in servers";
-        msg.error(&ctx, content).await?;
-
-        return Ok(ProcessResult::NoDM);
-    }
-
-    // Only owner?
-    if cmd.flags.only_owner() && msg.author.id != CONFIG.get().unwrap().owner {
-        let content = "That command can only be used by the owner";
-        msg.error(&ctx, content).await?;
-
-        return Ok(ProcessResult::NoOwner);
-    }
-
     let channel = msg.channel_id;
 
     // Does bot have sufficient permissions to send response in a guild?

@@ -38,7 +38,7 @@ async fn process_command(
     slash: &SlashCommand,
 ) -> BotResult<ProcessResult> {
     if slash.flags.defer() {
-        command.defer(&ctx, slash.flags.ephemeral()).await?;
+        command.defer(&ctx).await?;
     }
 
     (slash.exec)(ctx, command).await?;

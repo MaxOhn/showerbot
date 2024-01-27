@@ -163,8 +163,6 @@ async fn start_pagination<P: Pagination + Send>(
     owner: Id<UserMarker>,
     duration: u64,
 ) -> PaginationResult {
-    ctx.store_msg(pagination.msg().id);
-
     let reactions = pagination.reactions();
 
     let reaction_stream = {
@@ -200,10 +198,6 @@ async fn start_pagination<P: Pagination + Send>(
     }
 
     let msg = pagination.msg();
-
-    if !ctx.remove_msg(msg.id) {
-        return Ok(());
-    }
 
     let delete_fut = ctx.http.delete_all_reactions(msg.channel_id, msg.id).exec();
 

@@ -1,4 +1,4 @@
-#![deny(clippy::all, nonstandard_style, rust_2018_idioms, unused, warnings)]
+#![warn(clippy::all, nonstandard_style, rust_2018_idioms, unused, warnings)]
 
 #[macro_use]
 extern crate async_trait;
@@ -12,7 +12,6 @@ mod error;
 mod commands;
 mod core;
 mod custom_client;
-mod database;
 mod embeds;
 mod pagination;
 mod pp;
@@ -34,6 +33,8 @@ use crate::{
 type BotResult<T> = Result<T, Error>;
 
 fn main() {
+    let _log_worker_guard = logging::initialize();
+
     let runtime = RuntimeBuilder::new_multi_thread()
         .enable_all()
         .thread_stack_size(2 * 1024 * 1024)
@@ -46,8 +47,14 @@ fn main() {
 }
 
 async fn async_main() -> eyre::Result<()> {
-    dotenvy::dotenv()?;
-    let _log_worker_guard = logging::initialize();
+    dotenvy::dotenv().map_err(|_| {
+        eyre::eyre!(
+            "Failed to load env variables. \
+            Be sure you copied the .env.example file from the repository in \
+            the same directory as this executable, renamed it to .env, and \
+            adjusted its content."
+        )
+    })?;
 
     // Load config file
     core::BotConfig::init().context("failed to initialize config")?;
@@ -58,34 +65,11 @@ async fn async_main() -> eyre::Result<()> {
 
     // Initialize commands
     PREFIX_COMMANDS.init();
-    let slash_commands = SLASH_COMMANDS.collect();
-    info!("Setting {} slash commands...", slash_commands.len());
 
-    // info!("Defining: {slash_commands:#?}");
-
-    if cfg!(debug_assertions) {
-        ctx.interaction()
-            .set_global_commands(&[])
-            .exec()
-            .await
-            .context("failed to set empty global commands")?;
-
-        let _received = ctx
-            .interaction()
-            .set_guild_commands(CONFIG.get().unwrap().dev_guild, &slash_commands)
-            .exec()
-            .await
-            .context("failed to set guild commands")?;
-
-        // let commands = _received.models().await?;
-        // info!("Received: {commands:#?}");
-    } else {
-        ctx.interaction()
-            .set_global_commands(&slash_commands)
-            .exec()
-            .await
-            .context("failed to set global commands")?;
-    }
+    SLASH_COMMANDS
+        .register(&ctx.interaction())
+        .await
+        .wrap_err("failed to register slash commands")?;
 
     let event_ctx = Arc::clone(&ctx);
     ctx.cluster.up().await;

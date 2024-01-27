@@ -19,9 +19,7 @@ mod message;
 #[derive(Debug)]
 enum ProcessResult {
     Success,
-    NoDM,
     NoSendPermission,
-    NoOwner,
 }
 
 fn log_command(ctx: &Context, cmd: &dyn Authored, name: &str) {
@@ -123,14 +121,8 @@ async fn handle_event(ctx: Arc<Context>, event: Event, shard_id: u64) -> BotResu
         Event::MessageCreate(msg) => {
             handle_message(ctx, msg.0).await;
         }
-        Event::MessageDelete(msg) => {
-            ctx.remove_msg(msg.id);
-        }
-        Event::MessageDeleteBulk(msgs) => {
-            for id in msgs.ids.into_iter() {
-                ctx.remove_msg(id);
-            }
-        }
+        Event::MessageDelete(_) => {}
+        Event::MessageDeleteBulk(_) => {}
         Event::MessageUpdate(_) => {}
         Event::PresenceUpdate(_) => {}
         Event::PresencesReplace => {}

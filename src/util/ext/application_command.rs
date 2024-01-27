@@ -31,7 +31,7 @@ pub trait ApplicationCommandExt {
     /// Ackownledge the command but don't respond yet.
     ///
     /// Must use [`ApplicationCommandExt::update`] afterwards!
-    fn defer(&self, ctx: &Context, ephemeral: bool) -> ResponseFuture<EmptyBody>;
+    fn defer(&self, ctx: &Context) -> ResponseFuture<EmptyBody>;
 
     /// After having already ackowledged the command either via
     /// [`ApplicationCommandExt::callback`] or [`ApplicationCommandExt::defer`],
@@ -88,15 +88,10 @@ impl ApplicationCommandExt for ApplicationCommand {
     }
 
     #[inline]
-    fn defer(&self, ctx: &Context, ephemeral: bool) -> ResponseFuture<EmptyBody> {
-        let data = InteractionResponseData {
-            flags: ephemeral.then_some(MessageFlags::EPHEMERAL),
-            ..Default::default()
-        };
-
+    fn defer(&self, ctx: &Context) -> ResponseFuture<EmptyBody> {
         let response = InteractionResponse {
             kind: InteractionResponseType::DeferredChannelMessageWithSource,
-            data: Some(data),
+            data: Some(InteractionResponseData::default()),
         };
 
         ctx.interaction()
