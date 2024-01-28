@@ -11,7 +11,7 @@ use crate::{
 
 #[derive(CreateCommand, SlashCommand)]
 #[command(
-    name = "ping",
+    name = "pingnlb",
     help = "Most basic command, generally used to check if the bot is online.\n\
     The displayed latency is the time it takes for the bot \
     to receive a response from discord after sending a message."
