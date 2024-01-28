@@ -37,7 +37,6 @@ impl LeaderboardPagination {
     }
 }
 
-#[async_trait]
 impl Pagination for LeaderboardPagination {
     type PageData = LeaderboardEmbed;
 

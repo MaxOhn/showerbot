@@ -1,8 +1,9 @@
 mod leaderboard;
 
-use std::{borrow::Cow, sync::Arc, time::Duration};
+use std::{borrow::Cow, future::Future, sync::Arc, time::Duration};
 
 use eyre::Report;
+use futures::future;
 use smallvec::SmallVec;
 use tokio::time::sleep;
 use tokio_stream::StreamExt;
@@ -88,12 +89,11 @@ pub trait BasePagination {
     }
 }
 
-#[async_trait]
 pub trait Pagination: BasePagination + Send + Sync + Sized {
     type PageData: EmbedData + Send;
 
     // Implement this
-    async fn build_page(&mut self) -> BotResult<Self::PageData>;
+    fn build_page(&mut self) -> impl Future<Output = BotResult<Self::PageData>> + Send;
 
     // Optionally implement these
     fn content(&self) -> Option<Cow<'_, str>> {
@@ -102,8 +102,8 @@ pub trait Pagination: BasePagination + Send + Sync + Sized {
 
     fn process_data(&mut self, _data: &Self::PageData) {}
 
-    async fn final_processing(mut self, _ctx: &Context) -> BotResult<()> {
-        Ok(())
+    fn final_processing(self, _ctx: &Context) -> impl Future<Output = BotResult<()>> + Send {
+        future::ready(Ok(()))
     }
 
     // Don't implement anything else

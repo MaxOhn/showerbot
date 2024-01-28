@@ -6,7 +6,6 @@ edition = "2021"
 repository = "https://github.com/MaxOhn/showerbot"
 
 [dependencies]
-async-trait = { version = "0.1" }
 bitflags = { version = "1.0" }
 bytes = { version = "1.0" }
 command-macros = { path = "./command-macros" }
