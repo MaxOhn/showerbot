@@ -40,7 +40,17 @@ pub fn flag_url_svg(country_code: &str) -> String {
 }
 
 pub fn grade_emote(grade: Grade) -> &'static str {
-    CONFIG.get().unwrap().grade(grade)
+    match grade {
+        Grade::F => "F",
+        Grade::D => "D",
+        Grade::C => "C",
+        Grade::B => "B",
+        Grade::A => "A",
+        Grade::S => "S",
+        Grade::SH => "SH",
+        Grade::X => "X",
+        Grade::XH => "XH",
+    }
 }
 
 pub async fn prepare_beatmap_file(ctx: &Context, map_id: u32) -> Result<PathBuf, MapFileError> {

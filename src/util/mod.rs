@@ -1,12 +1,12 @@
 use std::mem;
 
 use tokio::time::{sleep, Duration};
-use twilight_http::error::ErrorType;
+use twilight_http::{error::ErrorType, request::channel::reaction::RequestReactionType};
 use twilight_model::channel::Message;
 
 use crate::{error::Error, BotResult, Context};
 
-pub use self::{cow::CowUtils, emote::Emote, ext::*};
+pub use self::{cow::CowUtils, ext::*};
 
 pub mod builder;
 pub mod constants;
@@ -16,7 +16,6 @@ pub mod numbers;
 pub mod osu;
 
 mod cow;
-mod emote;
 mod ext;
 
 macro_rules! get {
@@ -70,10 +69,13 @@ pub fn levenshtein_distance<'w>(mut word_a: &'w str, mut word_b: &'w str) -> (us
     (get!(costs[n]) as usize, n)
 }
 
-pub async fn send_reaction(ctx: &Context, msg: &Message, emote: Emote) -> BotResult<()> {
+pub async fn send_reaction(
+    ctx: &Context,
+    msg: &Message,
+    emoji: &RequestReactionType<'_>,
+) -> BotResult<()> {
     let channel = msg.channel_id;
     let msg = msg.id;
-    let emoji = &emote.request_reaction_type();
 
     // Initial attempt, return if it's not a 429
     match ctx.http.create_reaction(channel, msg, emoji).await {

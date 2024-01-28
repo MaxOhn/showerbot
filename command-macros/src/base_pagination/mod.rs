@@ -59,7 +59,8 @@ pub fn derive(input: DeriveInput) -> Result<TokenStream> {
     let Attributes { jump_idx, no_multi } = Attributes::try_from(attrs)?;
 
     let reaction_vec = quote!(crate::pagination::ReactionVec);
-    let emote = quote!(crate::util::Emote);
+    let reaction =
+        quote!(::twilight_http::request::channel::reaction::RequestReactionType::Unicode);
 
     let jump_idx = match jump_idx {
         Some(lit) => quote!(self.#lit),
@@ -71,13 +72,13 @@ pub fn derive(input: DeriveInput) -> Result<TokenStream> {
     } else {
         quote! {
             if self.pages.total_pages > 8 {
-                vec.push(#emote::MultiStepBack);
+                vec.push(#reaction { name: "⏪" });
             }
 
             self.single_reaction(vec);
 
             if self.pages.total_pages > 8 {
-                vec.push(#emote::MultiStep);
+                vec.push(#reaction { name: "⏩" });
             }
         }
     };
@@ -106,7 +107,7 @@ pub fn derive(input: DeriveInput) -> Result<TokenStream> {
 
             fn my_pos_reaction(&self, vec: &mut #reaction_vec) {
                 if self.jump_index().is_some() {
-                    vec.push(#emote::MyPosition);
+                    vec.push(#reaction { name: "*" });
                 }
             }
         }

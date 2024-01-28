@@ -8,7 +8,7 @@ use smallvec::SmallVec;
 use tokio::time::sleep;
 use tokio_stream::StreamExt;
 use twilight_gateway::Event;
-use twilight_http::error::ErrorType;
+use twilight_http::{error::ErrorType, request::channel::reaction::RequestReactionType};
 use twilight_model::{
     channel::{message::ReactionType, Message},
     gateway::GatewayReaction,
@@ -18,13 +18,13 @@ use twilight_model::{
 use crate::{
     embeds::EmbedData,
     error::Error,
-    util::{numbers, send_reaction, Emote},
+    util::{numbers, send_reaction},
     BotResult, Context,
 };
 
 pub use self::leaderboard::LeaderboardPagination;
 
-type ReactionVec = SmallVec<[Emote; 7]>;
+type ReactionVec = SmallVec<[RequestReactionType<'static>; 7]>;
 type PaginationResult = Result<(), PaginationError>;
 
 #[derive(Debug, thiserror::Error)]
@@ -57,15 +57,15 @@ pub trait BasePagination {
     }
 
     fn jump_reaction(&self, vec: &mut ReactionVec) {
-        vec.push(Emote::JumpStart);
+        vec.push(RequestReactionType::Unicode { name: "⏮" });
         self.multi_reaction(vec);
-        vec.push(Emote::JumpEnd);
+        vec.push(RequestReactionType::Unicode { name: "⏭" });
     }
 
     fn single_reaction(&self, vec: &mut ReactionVec) {
-        vec.push(Emote::SingleStepBack);
+        vec.push(RequestReactionType::Unicode { name: "◀" });
         self.my_pos_reaction(vec);
-        vec.push(Emote::SingleStep);
+        vec.push(RequestReactionType::Unicode { name: "▶" });
     }
 
     fn index(&self) -> usize {
@@ -170,8 +170,8 @@ async fn start_pagination<P: Pagination + Send>(
         let msg = pagination.msg();
         let msg_id = msg.id;
 
-        for emote in &reactions {
-            send_reaction(ctx, msg, *emote).await?;
+        for emote in reactions.iter() {
+            send_reaction(ctx, msg, emote).await?;
         }
 
         ctx.standby
@@ -206,11 +206,9 @@ async fn start_pagination<P: Pagination + Send>(
         if matches!(err.kind(), ErrorType::Response { status, .. } if *status == 403) {
             sleep(Duration::from_millis(100)).await;
 
-            for emote in &reactions {
-                let request_reaction = emote.request_reaction_type();
-
+            for request_reaction in reactions.iter() {
                 ctx.http
-                    .delete_current_user_reaction(msg.channel_id, msg.id, &request_reaction)
+                    .delete_current_user_reaction(msg.channel_id, msg.id, request_reaction)
                     .await?;
             }
         } else {
@@ -253,23 +251,21 @@ async fn process_reaction<P: Pagination>(
     reaction: &ReactionType,
 ) -> PageChange {
     let change_result = match reaction {
-        ReactionType::Custom {
-            name: Some(name), ..
-        } => match name.as_str() {
+        ReactionType::Unicode { name } => match name.as_str() {
             // Move to start
-            "jump_start" => (pagination.index() != 0).then_some(0),
+            "⏮" => (pagination.index() != 0).then_some(0),
             // Move one page left
-            "multi_step_back" => match pagination.index() {
+            "⏪" => match pagination.index() {
                 0 => None,
                 idx => Some(idx.saturating_sub(pagination.multi_step())),
             },
             // Move one index left
-            "single_step_back" => match pagination.index() {
+            "◀" => match pagination.index() {
                 0 => None,
                 idx => Some(idx.saturating_sub(pagination.single_step())),
             },
             // Move to specific position
-            "my_position" => {
+            "*" => {
                 if let Some(index) = pagination.jump_index() {
                     let i = numbers::last_multiple(pagination.per_page(), index + 1);
 
@@ -283,19 +279,19 @@ async fn process_reaction<P: Pagination>(
                 }
             }
             // Move one index right
-            "single_step" => (pagination.index() != pagination.last_index()).then(|| {
+            "▶" => (pagination.index() != pagination.last_index()).then(|| {
                 pagination
                     .last_index()
                     .min(pagination.index() + pagination.single_step())
             }),
             // Move one page right
-            "multi_step" => (pagination.index() != pagination.last_index()).then(|| {
+            "⏩" => (pagination.index() != pagination.last_index()).then(|| {
                 pagination
                     .last_index()
                     .min(pagination.index() + pagination.multi_step())
             }),
             // Move to end
-            "jump_end" => {
+            "⏭" => {
                 (pagination.index() != pagination.last_index()).then(|| pagination.last_index())
             }
             _ => None,
@@ -313,6 +309,7 @@ async fn process_reaction<P: Pagination>(
     }
 }
 
+#[derive(Debug)]
 enum ReactionWrapper {
     Add(GatewayReaction),
     Remove(GatewayReaction),

@@ -155,6 +155,8 @@ async fn discord_gateway(config: &BotConfig, http: &Client) -> BotResult<Vec<Sha
         | EventTypeFlags::MESSAGE_DELETE
         | EventTypeFlags::MESSAGE_DELETE_BULK
         | EventTypeFlags::READY
+        | EventTypeFlags::REACTION_ADD
+        | EventTypeFlags::REACTION_REMOVE
         | EventTypeFlags::ROLE_CREATE
         | EventTypeFlags::ROLE_DELETE
         | EventTypeFlags::ROLE_UPDATE

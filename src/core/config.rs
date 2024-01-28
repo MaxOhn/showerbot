@@ -1,22 +1,18 @@
-use std::{env, mem::MaybeUninit, path::PathBuf};
+use std::{env, path::PathBuf};
 
-use hashbrown::HashMap;
 use once_cell::sync::OnceCell;
-use rosu_v2::model::Grade;
 use twilight_model::id::{
     marker::{ChannelMarker, GuildMarker, UserMarker},
     Id,
 };
 
-use crate::{util::Emote, BotResult, Error};
+use crate::{BotResult, Error};
 
 pub static CONFIG: OnceCell<BotConfig> = OnceCell::new();
 
 pub struct BotConfig {
     pub tokens: Tokens,
     pub paths: Paths,
-    grades: [String; 9],
-    pub emotes: HashMap<Emote, String>,
     pub prefixes: Box<[Box<str>]>,
 }
 
@@ -33,48 +29,6 @@ pub struct Tokens {
 
 impl BotConfig {
     pub fn init() -> BotResult<()> {
-        let mut grades = [
-            MaybeUninit::uninit(),
-            MaybeUninit::uninit(),
-            MaybeUninit::uninit(),
-            MaybeUninit::uninit(),
-            MaybeUninit::uninit(),
-            MaybeUninit::uninit(),
-            MaybeUninit::uninit(),
-            MaybeUninit::uninit(),
-            MaybeUninit::uninit(),
-        ];
-
-        let grade_strs = ["F", "D", "C", "B", "A", "S", "X", "SH", "XH"];
-
-        for grade_str in grade_strs {
-            let key: Grade = grade_str.parse().unwrap();
-            let value: String = env_var(grade_str)?;
-            grades[key as usize].write(value);
-        }
-
-        // SAFETY: All grades have been initialized.
-        // Otherwise an error would have been thrown due to a missing emote.
-        let grades = unsafe { (&grades as *const _ as *const [String; 9]).read() };
-
-        let emotes = [
-            "jump_start",
-            "single_step_back",
-            "single_step",
-            "jump_end",
-            "miss",
-        ];
-
-        let emotes = emotes
-            .iter()
-            .map(|emote_str| {
-                let key = emote_str.parse().unwrap();
-                let value = env_var(emote_str)?;
-
-                Ok((key, value))
-            })
-            .collect::<BotResult<_>>()?;
-
         let Prefixes(prefixes) =
             env_var("PREFIX")
                 .or_else(|_| env_var("PREFIXES"))
@@ -97,8 +51,6 @@ impl BotConfig {
             paths: Paths {
                 maps: env_var("MAP_PATH")?,
             },
-            grades,
-            emotes,
             prefixes,
         };
 
@@ -107,10 +59,6 @@ impl BotConfig {
         }
 
         Ok(())
-    }
-
-    pub fn grade(&self, grade: Grade) -> &str {
-        self.grades[grade as usize].as_str()
     }
 }
 

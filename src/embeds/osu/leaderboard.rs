@@ -15,7 +15,7 @@ use crate::{
         datetime::HowLongAgoDynamic,
         numbers::with_comma_int,
         osu::prepare_beatmap_file,
-        CowUtils, Emote, ScoreExt,
+        CowUtils, ScoreExt,
     },
     BotResult,
 };
@@ -212,11 +212,6 @@ impl Display for MissFormat {
             return Ok(());
         }
 
-        write!(
-            f,
-            "{miss}{emote} ",
-            miss = self.0,
-            emote = Emote::Miss.text()
-        )
+        write!(f, "{miss}:x: ", miss = self.0)
     }
 }
