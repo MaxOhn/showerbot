@@ -25,6 +25,7 @@ pub struct Context {
     pub http: Arc<Client>,
     pub standby: Standby,
     pub application_id: Id<ApplicationMarker>,
+    pub prefixes: Box<[Box<str>]>,
     clients: Clients,
 }
 
@@ -68,7 +69,10 @@ impl Context {
             clients,
             application_id,
             standby: Standby::new(),
+            prefixes: config.prefixes.clone(),
         };
+
+        info!("Prefixes: {:?}", ctx.prefixes);
 
         Ok((ctx, shards))
     }

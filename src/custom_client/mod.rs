@@ -10,7 +10,7 @@ use hyper::{
 };
 use hyper_rustls::{HttpsConnector, HttpsConnectorBuilder};
 use leaky_bucket_lite::LeakyBucket;
-use rosu_v2::prelude::{GameMode, GameMods};
+use rosu_v2::prelude::{GameModIntermode, GameMode, GameModsIntermode};
 use tokio::time::{sleep, Duration};
 
 use crate::{
@@ -129,23 +129,25 @@ impl CustomClient {
         &self,
         map_id: u32,
         national: bool,
-        mods: Option<GameMods>,
+        mods: Option<&GameModsIntermode>,
         mode: GameMode,
     ) -> ClientResult<Vec<ScraperScore>> {
         let mut scores = self._get_leaderboard(map_id, national, mods).await?;
 
         let non_mirror = mods
-            .map(|mods| !mods.contains(GameMods::Mirror))
+            .map(|mods| !mods.contains(GameModIntermode::Mirror))
             .unwrap_or(true);
 
         // Check if another request for mania's MR is needed
         if mode == GameMode::Mania && non_mirror {
             let mods = match mods {
-                None => Some(GameMods::Mirror),
-                Some(mods) => Some(mods | GameMods::Mirror),
+                None => Some(rosu_v2::mods!(MR)),
+                Some(mods) => Some(mods.clone() | GameModIntermode::Mirror),
             };
 
-            let mut new_scores = self._get_leaderboard(map_id, national, mods).await?;
+            let mut new_scores = self
+                ._get_leaderboard(map_id, national, mods.as_ref())
+                .await?;
             scores.append(&mut new_scores);
             scores.sort_unstable_by(|a, b| b.score.cmp(&a.score));
             let mut uniques = HashSet::with_capacity(50);
@@ -155,9 +157,11 @@ impl CustomClient {
 
         // Check if DT / NC is included
         let mods = match mods {
-            Some(mods) if mods.contains(GameMods::DoubleTime) => Some(mods | GameMods::NightCore),
-            Some(mods) if mods.contains(GameMods::NightCore) => {
-                Some((mods - GameMods::NightCore) | GameMods::DoubleTime)
+            Some(mods) if mods.contains(GameModIntermode::DoubleTime) => {
+                Some(mods.clone() | GameModIntermode::Nightcore)
+            }
+            Some(mods) if mods.contains(GameModIntermode::Nightcore) => {
+                Some((mods.clone() - GameModIntermode::Nightcore) | GameModIntermode::DoubleTime)
             }
             Some(_) | None => None,
         };
@@ -165,12 +169,18 @@ impl CustomClient {
         // If DT / NC included, make another request
         if mods.is_some() {
             if mode == GameMode::Mania && non_mirror {
-                let mods = mods.map(|mods| mods | GameMods::Mirror);
-                let mut new_scores = self._get_leaderboard(map_id, national, mods).await?;
+                let mods = mods
+                    .as_ref()
+                    .map(|mods| mods.clone() | GameModIntermode::Mirror);
+                let mut new_scores = self
+                    ._get_leaderboard(map_id, national, mods.as_ref())
+                    .await?;
                 scores.append(&mut new_scores);
             }
 
-            let mut new_scores = self._get_leaderboard(map_id, national, mods).await?;
+            let mut new_scores = self
+                ._get_leaderboard(map_id, national, mods.as_ref())
+                .await?;
             scores.append(&mut new_scores);
             scores.sort_unstable_by(|a, b| b.score.cmp(&a.score));
             let mut uniques = HashSet::with_capacity(50);
@@ -186,7 +196,7 @@ impl CustomClient {
         &self,
         map_id: u32,
         national: bool,
-        mods: Option<GameMods>,
+        mods: Option<&GameModsIntermode>,
     ) -> ClientResult<Vec<ScraperScore>> {
         let mut url = format!("{OSU_BASE}beatmaps/{map_id}/scores?");
 

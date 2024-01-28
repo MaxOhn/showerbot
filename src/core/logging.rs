@@ -28,7 +28,7 @@ pub fn initialize() -> WorkerGuard {
         .with_writer(file_writer);
 
     let subscriber = FmtSubscriber::builder()
-        .with_env_filter(EnvFilter::from_default_env())
+        .with_env_filter(EnvFilter::builder().parse("info").unwrap())
         .with_target(false)
         .with_timer(UtcTime::new(formatter))
         .finish()

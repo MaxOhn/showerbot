@@ -107,7 +107,8 @@ impl Cache {
                         role_denied |= overwrite.deny;
                     }
                 }
-                PermissionOverwriteType::Unknown(_) | _ => {}
+                PermissionOverwriteType::Unknown(_) => {}
+                _ => {}
             }
         }
 

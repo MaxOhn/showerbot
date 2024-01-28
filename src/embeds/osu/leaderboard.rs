@@ -3,7 +3,7 @@ use std::fmt::{Display, Formatter, Result as FmtResult, Write};
 use command_macros::EmbedData;
 use hashbrown::{hash_map::Entry, HashMap};
 use rosu_pp::{Beatmap as Map, BeatmapExt, DifficultyAttributes, ScoreState};
-use rosu_v2::prelude::{Beatmap, Beatmapset, GameMode};
+use rosu_v2::prelude::{BeatmapExtended, BeatmapsetExtended, GameMode};
 
 use crate::{
     core::Context,
@@ -31,7 +31,7 @@ pub struct LeaderboardEmbed {
 impl LeaderboardEmbed {
     #[allow(clippy::too_many_arguments)]
     pub async fn new<'i, S>(
-        map: &Beatmap,
+        map: &BeatmapExtended,
         scores: Option<S>,
         author_icon: &Option<String>,
         idx: usize,
@@ -41,13 +41,13 @@ impl LeaderboardEmbed {
     where
         S: Iterator<Item = &'i ScraperScore>,
     {
-        let Beatmapset {
+        let BeatmapsetExtended {
             artist,
             title,
             creator_name,
             creator_id,
             ..
-        } = map.mapset.as_ref().unwrap();
+        } = map.mapset.as_deref().unwrap();
 
         let mut author_text = String::with_capacity(32);
 
@@ -177,11 +177,11 @@ impl Display for PPFormatter {
 
 struct ComboFormatter<'a> {
     score: &'a ScraperScore,
-    map: &'a Beatmap,
+    map: &'a BeatmapExtended,
 }
 
 impl<'a> ComboFormatter<'a> {
-    fn new(score: &'a ScraperScore, map: &'a Beatmap) -> Self {
+    fn new(score: &'a ScraperScore, map: &'a BeatmapExtended) -> Self {
         Self { score, map }
     }
 }

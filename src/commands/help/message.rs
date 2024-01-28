@@ -26,7 +26,7 @@ use super::failed_message_content;
 #[group(Utility)]
 #[alias("h")]
 #[usage("[command]")]
-#[example("", "nlb")]
+#[example("", "nlb", "ping")]
 async fn prefix_help(ctx: Arc<Context>, msg: &Message, mut args: Args<'_>) -> BotResult<()> {
     match args.next() {
         Some(arg) => match PREFIX_COMMANDS.command(arg) {
@@ -56,7 +56,7 @@ async fn failed_help(ctx: Arc<Context>, msg: &Message, name: &str) -> BotResult<
 
 async fn command_help(ctx: Arc<Context>, msg: &Message, cmd: &PrefixCommand) -> BotResult<()> {
     let name = cmd.name();
-    let mention = "@PingMe";
+    let prefix = ctx.prefixes.first().map_or("", |prefix| prefix.as_ref());
     let mut fields = Vec::new();
 
     let eb = EmbedBuilder::new()
@@ -66,7 +66,7 @@ async fn command_help(ctx: Arc<Context>, msg: &Message, cmd: &PrefixCommand) -> 
     let mut usage_len = 0;
 
     if let Some(usage) = cmd.usage {
-        let value = format!("`{mention} {name} {usage}`");
+        let value = format!("`{prefix}{name} {usage}`");
         usage_len = value.chars().count();
 
         let field = EmbedField {
@@ -84,11 +84,11 @@ async fn command_help(ctx: Arc<Context>, msg: &Message, cmd: &PrefixCommand) -> 
         let len: usize = cmd.examples.iter().map(|&e| name.len() + e.len() + 4).sum();
         let mut value = String::with_capacity(len);
         let mut example_len = 0;
-        let cmd_len = mention.chars().count() + name.chars().count();
-        writeln!(value, "`{mention} {name} {first}`")?;
+        let cmd_len = prefix.chars().count() + name.chars().count();
+        writeln!(value, "`{prefix}{name} {first}`")?;
 
         for example in examples {
-            writeln!(value, "`{mention} {name} {example}`")?;
+            writeln!(value, "`{prefix}{name} {example}`")?;
             example_len = example_len.max(cmd_len + example.chars().count());
         }
 
@@ -136,16 +136,14 @@ async fn command_help(ctx: Arc<Context>, msg: &Message, cmd: &PrefixCommand) -> 
     Ok(())
 }
 
-fn description() -> String {
+fn description(ctx: &Context) -> String {
     format!(
-        "To use message commands, ping me with the command name, e.g. `@PingMe nlb`.\n\
-        This bot is based on [Bathbot]({BATHBOT_GITHUB}) with its main \
-        functionality being the national map leaderboard.\n\
-        - To find out more about a command like what arguments you can give or which shorter aliases it has, \
-        use __**`<help [command]`**__, e.g. `<help nationalleaderboard`.
-        ~~`Strikethrough`~~ commands indicate that either you can't use them in DMs or \
-        only the bot owner can use them.\n\
-        \n__**All commands:**__\n"
+        "Prefixes: {:?} (or none in DMs).\n\
+        This bot is based on [Bathbot]({BATHBOT_GITHUB}).\n\
+        Its main functionality is the national map leaderboard command.\n\
+        To find out more about a command like what arguments you can give or which shorter aliases it has, \
+        use __**`<help [command]`**__, e.g. `<help nlb`.\n\
+        \n__**All commands:**__\n", ctx.prefixes
     )
 }
 
@@ -189,7 +187,7 @@ async fn dm_help(ctx: Arc<Context>, msg: &Message) -> BotResult<()> {
         let _ = msg.create_message(&ctx, &builder).await;
     }
 
-    let mut buf = description();
+    let mut buf = description(&ctx);
     let mut size = buf.len();
     let mut next_size;
 

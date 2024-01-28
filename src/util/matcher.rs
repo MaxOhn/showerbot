@@ -1,7 +1,7 @@
 use std::str::FromStr;
 
 use regex::Regex;
-use rosu_v2::prelude::{GameMods, UserId as OsuUserId};
+use rosu_v2::prelude::{GameModsIntermode, UserId as OsuUserId};
 
 use super::{constants::OSU_BASE, osu::ModSelection};
 
@@ -51,7 +51,7 @@ pub fn get_osu_mapset_id(msg: &str) -> Option<u32> {
 
 pub fn get_mods(msg: &str) -> Option<ModSelection> {
     let selection = if let Some(captures) = MOD_PLUS_MATCHER.captures(msg) {
-        let mods = GameMods::from_str(captures.get(1)?.as_str()).ok()?;
+        let mods = GameModsIntermode::from_str(captures.get(1)?.as_str()).ok()?;
 
         if msg.ends_with('!') {
             ModSelection::Exact(mods)
@@ -59,7 +59,7 @@ pub fn get_mods(msg: &str) -> Option<ModSelection> {
             ModSelection::Include(mods)
         }
     } else if let Some(captures) = MOD_MINUS_MATCHER.captures(msg) {
-        let mods = GameMods::from_str(captures.get(1)?.as_str()).ok()?;
+        let mods = GameModsIntermode::from_str(captures.get(1)?.as_str()).ok()?;
 
         ModSelection::Exclude(mods)
     } else {

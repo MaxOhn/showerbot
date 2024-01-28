@@ -102,6 +102,10 @@ impl<'a> Stream<'a> {
         self.take_while_char(|c| !f(c))
     }
 
+    pub fn starts_with(&self, prefix: &str) -> bool {
+        self.src[self.offset..].starts_with(prefix.as_bytes())
+    }
+
     pub fn increment(&mut self, amount: usize) {
         self.offset += amount;
     }

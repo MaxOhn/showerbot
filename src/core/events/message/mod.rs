@@ -27,8 +27,10 @@ pub async fn handle_message(ctx: Arc<Context>, msg: Message) {
     let mut stream = Stream::new(&msg.content);
     stream.take_while_char(char::is_whitespace);
 
-    // TODO: does msg contain ping to the bot
-    let prefix = None::<&str>;
+    let prefix = ctx
+        .prefixes
+        .iter()
+        .find(|prefix| stream.starts_with(prefix));
 
     if let Some(prefix) = prefix {
         stream.increment(prefix.len());

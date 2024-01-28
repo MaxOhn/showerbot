@@ -1,5 +1,9 @@
-use rosu_v2::prelude::{CountryCode, GameMode, GameMods, Grade, RankStatus};
-use serde::{Deserialize, Deserializer};
+use rosu_v2::prelude::{CountryCode, GameMode, GameMods, Grade, ModeAsSeed, RankStatus};
+use serde::{
+    de::{DeserializeSeed, Error as DeError},
+    Deserialize, Deserializer,
+};
+use serde_json::value::RawValue;
 use time::OffsetDateTime;
 
 use super::deser;
@@ -41,12 +45,13 @@ pub struct ScraperScore {
 impl<'de> Deserialize<'de> for ScraperScore {
     fn deserialize<D: Deserializer<'de>>(d: D) -> Result<Self, D::Error> {
         #[derive(Deserialize)]
-        struct Outer {
+        struct Outer<'mods> {
             id: u64,
             user_id: u32,
             #[serde(with = "deser::adjust_acc")]
             accuracy: f32,
-            mods: GameMods,
+            #[serde(borrow)]
+            mods: Option<&'mods RawValue>,
             #[serde(rename = "total_score")]
             score: u32,
             #[serde(rename = "ruleset_id")]
@@ -87,6 +92,17 @@ impl<'de> Deserialize<'de> for ScraperScore {
 
         let helper = Outer::deserialize(d)?;
 
+        let mods = match helper.mods {
+            Some(raw) => {
+                let mut d = serde_json::Deserializer::from_str(raw.get());
+
+                ModeAsSeed::<GameMods>::new(helper.mode)
+                    .deserialize(&mut d)
+                    .map_err(DeError::custom)?
+            }
+            None => GameMods::default(),
+        };
+
         Ok(ScraperScore {
             id: helper.id,
             user_id: helper.user_id,
@@ -94,10 +110,9 @@ impl<'de> Deserialize<'de> for ScraperScore {
             country_code: helper.user.country_code,
             accuracy: helper.accuracy,
             mode: helper.mode,
-            mods: helper.mods,
+            mods,
             score: helper.score,
             max_combo: helper.max_combo,
-            // perfect: helper.perfect,
             pp: helper.pp,
             grade: helper.rank,
             date: helper.ended_at,

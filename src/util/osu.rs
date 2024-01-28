@@ -1,6 +1,6 @@
 use std::path::PathBuf;
 
-use rosu_v2::prelude::{GameMode, GameMods, Grade, Score};
+use rosu_v2::prelude::{GameMode, GameMods, GameModsIntermode, Grade, Score};
 use time::OffsetDateTime;
 use tokio::{fs::File, io::AsyncWriteExt};
 use twilight_model::channel::{message::embed::Embed, Message};
@@ -12,11 +12,11 @@ use crate::{
     CONFIG,
 };
 
-#[derive(Copy, Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub enum ModSelection {
-    Include(GameMods),
-    Exclude(GameMods),
-    Exact(GameMods),
+    Include(GameModsIntermode),
+    Exclude(GameModsIntermode),
+    Exact(GameModsIntermode),
 }
 
 #[allow(dead_code)]
@@ -162,7 +162,7 @@ pub trait SortableScore {
     fn mapset_id(&self) -> u32;
     fn max_combo(&self) -> u32;
     fn mode(&self) -> GameMode;
-    fn mods(&self) -> GameMods;
+    fn mods(&self) -> &GameMods;
     fn n_misses(&self) -> u32;
     fn pp(&self) -> Option<f32>;
     fn score(&self) -> u32;
@@ -201,8 +201,8 @@ impl SortableScore for Score {
         self.mode
     }
 
-    fn mods(&self) -> GameMods {
-        self.mods
+    fn mods(&self) -> &GameMods {
+        &self.mods
     }
 
     fn n_misses(&self) -> u32 {
@@ -265,7 +265,7 @@ macro_rules! impl_sortable_score_tuple {
                 SortableScore::mode(&self.$idx)
             }
 
-            fn mods(&self) -> GameMods {
+            fn mods(&self) -> &GameMods {
                 SortableScore::mods(&self.$idx)
             }
 

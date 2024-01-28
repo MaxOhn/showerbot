@@ -1,10 +1,10 @@
 use rosu_pp::{Beatmap, BeatmapExt as rosu_v2BeatmapExt, DifficultyAttributes};
-use rosu_v2::model::GameMods;
+use rosu_v2::model::mods::GameModsIntermode;
 
 use crate::{core::Context, error::PpError, util::osu::prepare_beatmap_file};
 
 enum ScoreKind {
-    Mods(GameMods),
+    Mods(GameModsIntermode),
 }
 
 impl ScoreKind {
@@ -33,7 +33,7 @@ impl PpCalculator {
         })
     }
 
-    pub fn mods(&mut self, mods: GameMods) -> &mut Self {
+    pub fn mods(&mut self, mods: GameModsIntermode) -> &mut Self {
         self.score = Some(ScoreKind::Mods(mods));
         self.difficulty = None;
 

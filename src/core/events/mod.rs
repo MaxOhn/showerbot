@@ -63,7 +63,7 @@ impl Display for CommandLocation<'_> {
     }
 }
 
-pub async fn event_loop(ctx: Arc<Context>, shards: &mut Vec<Shard>) {
+pub async fn event_loop(ctx: Arc<Context>, shards: &mut [Shard]) {
     let mut stream = ShardEventStream::new(shards.iter_mut());
 
     // actual event loop

@@ -258,9 +258,9 @@ async fn leaderboard(
         }
     };
 
-    if let Some(ModSelection::Include(m) | ModSelection::Exact(m)) = mods {
+    if let Some(ModSelection::Include(ref m) | ModSelection::Exact(ref m)) = mods {
         match PpCalculator::new(&ctx, map_id).await {
-            Ok(mut calc) => map.stars = calc.mods(m).stars() as f32,
+            Ok(mut calc) => map.stars = calc.mods(m.clone()).stars() as f32,
             Err(err) => warn!("{:?}", Report::new(err)),
         }
     }
@@ -271,7 +271,7 @@ async fn leaderboard(
         national,
         match mods {
             Some(ModSelection::Exclude(_)) | None => None,
-            Some(ModSelection::Include(m)) | Some(ModSelection::Exact(m)) => Some(m),
+            Some(ModSelection::Include(ref m)) | Some(ModSelection::Exact(ref m)) => Some(m),
         },
         map.mode,
     );

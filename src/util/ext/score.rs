@@ -3,7 +3,7 @@ use crate::{
     util::{numbers::round, osu::grade_emote},
 };
 
-use rosu_v2::prelude::{GameMode, GameMods, Grade, MatchScore, Score};
+use rosu_v2::prelude::{GameModIntermode, GameMode, GameMods, Grade, Score};
 use std::fmt::Write;
 
 pub trait ScoreExt: Send + Sync {
@@ -15,7 +15,7 @@ pub trait ScoreExt: Send + Sync {
     fn count_geki(&self) -> u32;
     fn count_katu(&self) -> u32;
     fn max_combo(&self) -> u32;
-    fn mods(&self) -> GameMods;
+    fn mods(&self) -> &GameMods;
     fn score(&self) -> u32;
     fn pp(&self) -> Option<f32>;
     fn acc(&self, mode: GameMode) -> f32;
@@ -77,7 +77,9 @@ pub trait ScoreExt: Send + Sync {
         let mods = self.mods();
 
         if self.count_300() == passed_objects {
-            return if mods.contains(GameMods::Hidden) || mods.contains(GameMods::Flashlight) {
+            return if mods.contains_intermode(GameModIntermode::Hidden)
+                || mods.contains_intermode(GameModIntermode::Flashlight)
+            {
                 Grade::XH
             } else {
                 Grade::X
@@ -88,7 +90,9 @@ pub trait ScoreExt: Send + Sync {
         let ratio50 = self.count_50() as f32 / passed_objects as f32;
 
         if ratio300 > 0.9 && ratio50 < 0.01 && self.count_miss() == 0 {
-            if mods.contains(GameMods::Hidden) || mods.contains(GameMods::Flashlight) {
+            if mods.contains_intermode(GameModIntermode::Hidden)
+                || mods.contains_intermode(GameModIntermode::Flashlight)
+            {
                 Grade::SH
             } else {
                 Grade::S
@@ -109,7 +113,9 @@ pub trait ScoreExt: Send + Sync {
         let mods = self.mods();
 
         if self.count_geki() == passed_objects {
-            return if mods.contains(GameMods::Hidden) || mods.contains(GameMods::Flashlight) {
+            return if mods.contains_intermode(GameModIntermode::Hidden)
+                || mods.contains_intermode(GameModIntermode::Flashlight)
+            {
                 Grade::XH
             } else {
                 Grade::X
@@ -119,7 +125,9 @@ pub trait ScoreExt: Send + Sync {
         let acc = acc.unwrap_or_else(|| self.acc(GameMode::Mania));
 
         if acc > 95.0 {
-            if mods.contains(GameMods::Hidden) || mods.contains(GameMods::Flashlight) {
+            if mods.contains_intermode(GameModIntermode::Hidden)
+                || mods.contains_intermode(GameModIntermode::Flashlight)
+            {
                 Grade::SH
             } else {
                 Grade::S
@@ -141,7 +149,9 @@ pub trait ScoreExt: Send + Sync {
         let count_300 = self.count_300();
 
         if count_300 == passed_objects {
-            return if mods.intersects(GameMods::Hidden | GameMods::Flashlight) {
+            return if mods.contains_intermode(GameModIntermode::Hidden)
+                || mods.contains_intermode(GameModIntermode::Flashlight)
+            {
                 Grade::XH
             } else {
                 Grade::X
@@ -152,7 +162,9 @@ pub trait ScoreExt: Send + Sync {
         let count_miss = self.count_miss();
 
         if ratio300 > 0.9 && count_miss == 0 {
-            if mods.intersects(GameMods::Hidden | GameMods::Flashlight) {
+            if mods.contains_intermode(GameModIntermode::Hidden)
+                || mods.contains_intermode(GameModIntermode::Flashlight)
+            {
                 Grade::SH
             } else {
                 Grade::S
@@ -173,13 +185,17 @@ pub trait ScoreExt: Send + Sync {
         let acc = acc.unwrap_or_else(|| self.acc(GameMode::Catch));
 
         if (100.0 - acc).abs() <= std::f32::EPSILON {
-            if mods.contains(GameMods::Hidden) || mods.contains(GameMods::Flashlight) {
+            if mods.contains_intermode(GameModIntermode::Hidden)
+                || mods.contains_intermode(GameModIntermode::Flashlight)
+            {
                 Grade::XH
             } else {
                 Grade::X
             }
         } else if acc > 98.0 {
-            if mods.contains(GameMods::Hidden) || mods.contains(GameMods::Flashlight) {
+            if mods.contains_intermode(GameModIntermode::Hidden)
+                || mods.contains_intermode(GameModIntermode::Flashlight)
+            {
                 Grade::SH
             } else {
                 Grade::S
@@ -222,8 +238,8 @@ impl ScoreExt for Score {
     fn max_combo(&self) -> u32 {
         self.max_combo
     }
-    fn mods(&self) -> GameMods {
-        self.mods
+    fn mods(&self) -> &GameMods {
+        &self.mods
     }
     fn grade(&self, _mode: GameMode) -> Grade {
         self.grade
@@ -261,8 +277,8 @@ impl ScoreExt for ScraperScore {
     fn max_combo(&self) -> u32 {
         self.max_combo
     }
-    fn mods(&self) -> GameMods {
-        self.mods
+    fn mods(&self) -> &GameMods {
+        &self.mods
     }
     fn grade(&self, _: GameMode) -> Grade {
         self.grade
@@ -273,52 +289,6 @@ impl ScoreExt for ScraperScore {
     fn pp(&self) -> Option<f32> {
         self.pp
     }
-    fn acc(&self, _: GameMode) -> f32 {
-        self.accuracy
-    }
-}
-
-impl ScoreExt for MatchScore {
-    fn count_miss(&self) -> u32 {
-        self.statistics.count_miss
-    }
-
-    fn count_50(&self) -> u32 {
-        self.statistics.count_50
-    }
-
-    fn count_100(&self) -> u32 {
-        self.statistics.count_100
-    }
-
-    fn count_300(&self) -> u32 {
-        self.statistics.count_300
-    }
-
-    fn count_geki(&self) -> u32 {
-        self.statistics.count_geki
-    }
-
-    fn count_katu(&self) -> u32 {
-        self.statistics.count_katu
-    }
-
-    fn max_combo(&self) -> u32 {
-        self.max_combo
-    }
-
-    fn mods(&self) -> GameMods {
-        self.mods
-    }
-
-    fn score(&self) -> u32 {
-        self.score
-    }
-
-    fn pp(&self) -> Option<f32> {
-        None
-    }
-
     fn acc(&self, _: GameMode) -> f32 {
         self.accuracy
     }
