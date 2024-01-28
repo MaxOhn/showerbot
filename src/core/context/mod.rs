@@ -6,10 +6,6 @@ use twilight_gateway::{stream, CloseFrame, Config, EventTypeFlags, Intents, Shar
 use twilight_http::{client::InteractionClient, Client};
 use twilight_model::{
     channel::message::AllowedMentions,
-    gateway::{
-        payload::outgoing::update_presence::UpdatePresencePayload,
-        presence::{ActivityType, MinimalActivity, Status},
-    },
     id::{marker::ApplicationMarker, Id},
 };
 use twilight_standby::Standby;
@@ -168,18 +164,8 @@ async fn discord_gateway(config: &BotConfig, http: &Client) -> BotResult<Vec<Sha
         | EventTypeFlags::UNAVAILABLE_GUILD
         | EventTypeFlags::USER_UPDATE;
 
-    let activity = MinimalActivity {
-        kind: ActivityType::Playing,
-        name: "osu!".to_owned(),
-        url: None,
-    };
-
-    let presence =
-        UpdatePresencePayload::new([activity.into()], false, None, Status::Online).unwrap();
-
     let config = Config::builder(config.tokens.discord.to_string(), intents)
         .event_types(event_types)
-        .presence(presence)
         .build();
 
     stream::create_recommended(http, config, |_, builder| builder.build())
