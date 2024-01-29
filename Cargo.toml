@@ -66,4 +66,4 @@ targets = ["aarch64-apple-darwin", "x86_64-apple-darwin", "x86_64-unknown-linux-
 pr-run-mode = "plan"
 
 [workspace.metadata.dist.github-custom-runners]
-arm-unknown-linux-gnueabihf = "raspberrypi"
+arm-unknown-linux-gnueabihf = "self-hosted"
