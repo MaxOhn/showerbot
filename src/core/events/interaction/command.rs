@@ -5,7 +5,7 @@ use eyre::Report;
 use crate::{
     core::{
         commands::slash::{SlashCommand, SLASH_COMMANDS},
-        events::{log_command, ProcessResult},
+        events::log_command,
         Context,
     },
     util::InteractionCommandExt,
@@ -16,7 +16,7 @@ use super::InteractionCommand;
 
 pub async fn handle_command(ctx: Arc<Context>, mut command: InteractionCommand) {
     let name = mem::take(&mut command.data.name);
-    log_command(&ctx, &command, &name);
+    log_command(&command, &name);
 
     let slash = match SLASH_COMMANDS.command(&name) {
         Some(slash) => slash,
@@ -24,8 +24,7 @@ pub async fn handle_command(ctx: Arc<Context>, mut command: InteractionCommand) 
     };
 
     match process_command(ctx, command, slash).await {
-        Ok(ProcessResult::Success) => info!("Processed slash command `{name}`"),
-        Ok(res) => info!("Command `/{name}` was not processed: {res:?}"),
+        Ok(()) => info!("Processed slash command `{name}`"),
         Err(err) => {
             let wrap = format!("failed to process slash command `{name}`");
             error!("{:?}", Report::new(err).wrap_err(wrap));
@@ -37,12 +36,10 @@ async fn process_command(
     ctx: Arc<Context>,
     command: InteractionCommand,
     slash: &SlashCommand,
-) -> BotResult<ProcessResult> {
+) -> BotResult<()> {
     if slash.flags.defer() {
         command.defer(&ctx).await?;
     }
 
-    (slash.exec)(ctx, command).await?;
-
-    Ok(ProcessResult::Success)
+    (slash.exec)(ctx, command).await
 }

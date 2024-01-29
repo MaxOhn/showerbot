@@ -1,7 +1,7 @@
 use std::sync::Arc;
 
 use eyre::Report;
-use twilight_model::{channel::Message, guild::Permissions};
+use twilight_model::channel::Message;
 
 use crate::{
     core::{
@@ -13,7 +13,7 @@ use crate::{
 
 use self::parse::*;
 
-use super::{log_command, ProcessResult};
+use super::log_command;
 
 mod parse;
 
@@ -45,11 +45,10 @@ pub async fn handle_message(ctx: Arc<Context>, msg: Message) {
     };
 
     let name = cmd.name();
-    log_command(&ctx, &msg, name);
+    log_command(&msg, name);
 
     match process_command(ctx, cmd, &msg, stream, num).await {
-        Ok(ProcessResult::Success) => info!("Processed command `{name}`"),
-        Ok(result) => info!("Command `{name}` was not processed: {result:?}"),
+        Ok(_) => info!("Processed command `{name}`"),
         Err(err) => {
             let wrap = format!("failed to process prefix command `{name}`");
             error!("{:?}", Report::new(err).wrap_err(wrap));
@@ -63,18 +62,8 @@ async fn process_command(
     msg: &Message,
     stream: Stream<'_>,
     num: Option<u64>,
-) -> BotResult<ProcessResult> {
+) -> BotResult<()> {
     let channel = msg.channel_id;
-
-    // Does bot have sufficient permissions to send response in a guild?
-    if let Some(guild) = msg.guild_id {
-        let user = ctx.cache.current_user(|user| user.id)?;
-        let permissions = ctx.cache.get_channel_permissions(user, channel, guild);
-
-        if !permissions.contains(Permissions::SEND_MESSAGES) {
-            return Ok(ProcessResult::NoSendPermission);
-        }
-    }
 
     // Prepare lightweight arguments
     let args = Args::new(&msg.content, stream, num);
@@ -85,7 +74,5 @@ async fn process_command(
     }
 
     // Call command function
-    (cmd.exec)(ctx, msg, args).await?;
-
-    Ok(ProcessResult::Success)
+    (cmd.exec)(ctx, msg, args).await
 }

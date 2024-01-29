@@ -15,8 +15,6 @@ macro_rules! bail {
 
 #[derive(Debug, thiserror::Error)]
 pub enum Error {
-    #[error("missing value in cache")]
-    Cache(#[from] crate::core::CacheMiss),
     #[error("custom client error")]
     CustomClient(#[from] crate::custom_client::CustomClientError),
     #[error("fmt error")]

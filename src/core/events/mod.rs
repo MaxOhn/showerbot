@@ -17,24 +17,17 @@ use super::Context;
 mod interaction;
 mod message;
 
-#[derive(Debug)]
-enum ProcessResult {
-    Success,
-    NoSendPermission,
-}
-
-fn log_command(ctx: &Context, cmd: &dyn Authored, name: &str) {
+fn log_command(cmd: &dyn Authored, name: &str) {
     let username = cmd
         .user()
         .map(|u| u.name.as_str())
         .unwrap_or("<unknown user>");
 
-    let location = CommandLocation { ctx, cmd };
+    let location = CommandLocation { cmd };
     info!("[{location}] {username} invoked `{name}`");
 }
 
 struct CommandLocation<'a> {
-    ctx: &'a Context,
     cmd: &'a dyn Authored,
 }
 
@@ -45,21 +38,7 @@ impl Display for CommandLocation<'_> {
             None => return f.write_str("Private"),
         };
 
-        match self.ctx.cache.guild(guild, |g| write!(f, "{}:", g.name())) {
-            Ok(Ok(_)) => {
-                let channel_res = self.ctx.cache.channel(self.cmd.channel_id(), |c| {
-                    f.write_str(c.name.as_deref().unwrap_or("<uncached channel>"))
-                });
-
-                match channel_res {
-                    Ok(Ok(_)) => Ok(()),
-                    Ok(err) => err,
-                    Err(_) => f.write_str("<uncached channel>"),
-                }
-            }
-            Ok(err) => err,
-            Err(_) => f.write_str("<uncached guild>"),
-        }
+        write!(f, "{{Guild {guild}}}:{{Channel {}}}", self.cmd.channel_id())
     }
 }
 
@@ -71,7 +50,6 @@ pub async fn event_loop(ctx: Arc<Context>, shards: &mut [Shard]) {
         let err = match stream.next().await {
             Some((shard, Ok(event))) => {
                 ctx.standby.process(&event);
-                ctx.cache.update(&event);
                 let ctx = Arc::clone(&ctx);
                 let shard_id = shard.id().number();
 

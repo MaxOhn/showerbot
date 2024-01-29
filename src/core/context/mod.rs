@@ -12,12 +12,11 @@ use twilight_standby::Standby;
 
 use crate::{core::CONFIG, custom_client::CustomClient, BotResult, Error as BotError};
 
-use super::{BotConfig, Cache};
+use super::BotConfig;
 
 mod messages;
 
 pub struct Context {
-    pub cache: Cache,
     pub http: Arc<Client>,
     pub standby: Standby,
     pub application_id: Id<ApplicationMarker>,
@@ -53,14 +52,11 @@ impl Context {
         // Log custom client into osu!
         let custom = CustomClient::new(config).await?;
 
-        let cache = Cache::new().await;
-
         let clients = Clients::new(osu, custom);
 
         let shards = discord_gateway(config, &http).await?;
 
         let ctx = Self {
-            cache,
             http,
             clients,
             application_id,
@@ -132,39 +128,17 @@ async fn discord_http(config: &BotConfig) -> BotResult<(Arc<Client>, Id<Applicat
 }
 
 async fn discord_gateway(config: &BotConfig, http: &Client) -> BotResult<Vec<Shard>> {
-    let intents = Intents::GUILDS
-        | Intents::GUILD_MEMBERS
-        | Intents::GUILD_MESSAGES
+    let intents = Intents::GUILD_MESSAGES
         | Intents::GUILD_MESSAGE_REACTIONS
         | Intents::DIRECT_MESSAGES
         | Intents::DIRECT_MESSAGE_REACTIONS
         | Intents::MESSAGE_CONTENT;
 
-    let event_types = EventTypeFlags::CHANNEL_CREATE
-        | EventTypeFlags::CHANNEL_DELETE
-        | EventTypeFlags::CHANNEL_UPDATE
-        | EventTypeFlags::GUILD_CREATE
-        | EventTypeFlags::GUILD_DELETE
-        | EventTypeFlags::GUILD_UPDATE
-        | EventTypeFlags::INTERACTION_CREATE
-        | EventTypeFlags::MEMBER_ADD
-        | EventTypeFlags::MEMBER_REMOVE
-        | EventTypeFlags::MEMBER_UPDATE
-        | EventTypeFlags::MEMBER_CHUNK
+    let event_types = EventTypeFlags::INTERACTION_CREATE
         | EventTypeFlags::MESSAGE_CREATE
-        | EventTypeFlags::MESSAGE_DELETE
-        | EventTypeFlags::MESSAGE_DELETE_BULK
         | EventTypeFlags::READY
         | EventTypeFlags::REACTION_ADD
-        | EventTypeFlags::REACTION_REMOVE
-        | EventTypeFlags::ROLE_CREATE
-        | EventTypeFlags::ROLE_DELETE
-        | EventTypeFlags::ROLE_UPDATE
-        | EventTypeFlags::THREAD_CREATE
-        | EventTypeFlags::THREAD_DELETE
-        | EventTypeFlags::THREAD_UPDATE
-        | EventTypeFlags::UNAVAILABLE_GUILD
-        | EventTypeFlags::USER_UPDATE;
+        | EventTypeFlags::REACTION_REMOVE;
 
     let config = Config::builder(config.tokens.discord.to_string(), intents)
         .event_types(event_types)
