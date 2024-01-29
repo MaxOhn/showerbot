@@ -684,12 +684,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "paste"
-version = "1.0.14"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "de3145af08024dea9fa9914f381a17b8fc6034dfb00f3a84013f7ff43f29ed4c"
-
-[[package]]
 name = "percent-encoding"
 version = "2.3.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -879,14 +873,12 @@ version = "0.8.0"
 source = "git+https://github.com/MaxOhn/rosu-v2?branch=next#310c22d806962559a1dab073c6c6d336abea9c36"
 dependencies = [
  "bytes",
- "dashmap",
  "futures",
  "hyper",
  "hyper-rustls 0.24.2",
  "itoa",
  "leaky-bucket-lite",
  "log",
- "paste",
  "serde",
  "serde_json",
  "serde_urlencoded",
