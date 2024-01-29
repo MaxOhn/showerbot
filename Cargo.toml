@@ -41,9 +41,10 @@ twilight-standby = { version = "0.15", default-features = false }
 twilight-validate = { version = "0.15" }
 
 [profile.release]
-lto = "thin"
-codegen-units = 1
 strip = "debuginfo"
+# Disabled to make compilation easier on the raspberry
+# lto = "thin"
+# codegen-units = 1
 
 # The profile that 'cargo dist' will build with
 [profile.dist]
