@@ -19,7 +19,7 @@ It only has the following commands:
 ## Setup
 
 - Before starting, be sure you have access to an [osu!](https://osu.ppy.sh/home) account that has supporter. The bot will be able to show the national map leaderboards of that user's country.
-- Download a binary from the [releases](https://github.com/MaxOhn/showerbot/releases) page.
+- Download a binary from the [releases](https://github.com/MaxOhn/showerbot/releases) page for your operating system.
 - Copy-paste the content of the [`.env.example`](https://github.com/MaxOhn/showerbot/blob/main/.env.example) file into a file called `.env` and put it next to the downloaded binary.
-- Read through the `.env` file in fill in all required variables
+- Read through the `.env` file and fill in all required variables
 - Run the binary
