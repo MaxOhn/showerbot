@@ -42,7 +42,6 @@ on:
     tags:
       - '**[0-9]+.[0-9]+.[0-9]+*'
   pull_request:
-  workflow_dispatch:
 
 jobs:
   # Run 'cargo dist plan' (or host) to determine what tasks we need to do
@@ -111,6 +110,7 @@ jobs:
           submodules: recursive
       - uses: swatinem/rust-cache@v2
       - name: Install cargo-dist
+        if: ${{ matrix.runner != 'self-hosted' }}
         run: ${{ matrix.install_dist }}
       # Get the dist-manifest
       - name: Fetch local artifacts
