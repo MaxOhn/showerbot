@@ -30,7 +30,7 @@ use crate::{
 type BotResult<T> = Result<T, Error>;
 
 fn main() {
-    let _log_worker_guard = logging::initialize();
+    logging::init();
 
     let runtime = RuntimeBuilder::new_multi_thread()
         .enable_all()

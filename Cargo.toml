@@ -31,7 +31,6 @@ time = { version = "0.3", features = ["macros", "parsing"] }
 tokio = { version = "1.0", default-features = false, features = ["fs", "io-util", "macros", "rt-multi-thread", "signal", "sync", "time"] }
 tokio-stream = { version = "0.1", default-features = false, features = ["time"] }
 tracing = { version = "0.1" }
-tracing-appender = { version = "0.2" }
 tracing-subscriber = { version = "0.3", default-features = false, features = ["env-filter", "fmt", "smallvec", "std", "time", "tracing-log"] }
 
 twilight-gateway = { version = "0.15", features = ["twilight-http"] }
