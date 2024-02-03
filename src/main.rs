@@ -1,4 +1,4 @@
-#![warn(clippy::all, nonstandard_style, rust_2018_idioms, unused, warnings)]
+#![warn(clippy::all, nonstandard_style, rust_2018_idioms, unused)]
 
 #[macro_use]
 extern crate tracing;
@@ -44,14 +44,7 @@ fn main() {
 }
 
 async fn async_main() -> eyre::Result<()> {
-    dotenvy::dotenv().map_err(|_| {
-        eyre::eyre!(
-            "Failed to load env variables. \
-            Be sure you copied the .env.example file from the repository in \
-            the same directory as this executable, renamed it to .env, and \
-            adjusted its content."
-        )
-    })?;
+    init_env()?;
 
     // Load config file
     core::BotConfig::init().context("failed to initialize config")?;
@@ -84,4 +77,21 @@ async fn async_main() -> eyre::Result<()> {
     info!("Shutting down");
 
     Ok(())
+}
+
+fn init_env() -> eyre::Result<()> {
+    match dotenvy::dotenv() {
+        Ok(_) => Ok(()),
+        Err(err @ dotenvy::Error::LineParse(..)) => {
+            Err(eyre::Report::new(err).wrap_err("Failed to parse .env file"))
+        }
+        _ => {
+            eyre::bail!(
+                "Failed to load env variables. \
+                Be sure you copied the .env.example file from the repository in \
+                the same directory as this executable, renamed it to .env, and \
+                adjusted its content."
+            )
+        }
+    }
 }
