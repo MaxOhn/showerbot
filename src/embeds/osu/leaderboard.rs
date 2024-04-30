@@ -78,7 +78,7 @@ impl LeaderboardEmbed {
                 let _ = write!(
                     username,
                     "[{name}]({OSU_BASE}users/{id})",
-                    name = score.username.cow_escape_markdown(),
+                    name = score.username,
                     id = score.user_id
                 );
 
