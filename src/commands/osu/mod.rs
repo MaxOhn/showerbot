@@ -3,10 +3,9 @@ use std::{
     ops::{AddAssign, Div},
 };
 
-use rosu_v2::prelude::OsuError;
 use twilight_interactions::command::{CommandOption, CreateOption};
 
-use crate::{util::osu::ModSelection, Error};
+use crate::util::osu::ModSelection;
 
 pub use self::leaderboard::*;
 
@@ -20,23 +19,6 @@ pub enum ModsResult {
     Mods(ModSelection),
     None,
     Invalid,
-}
-
-enum ErrorType {
-    Bot(Error),
-    Osu(OsuError),
-}
-
-impl From<Error> for ErrorType {
-    fn from(e: Error) -> Self {
-        Self::Bot(e)
-    }
-}
-
-impl From<OsuError> for ErrorType {
-    fn from(e: OsuError) -> Self {
-        Self::Osu(e)
-    }
 }
 
 pub trait Number: AddAssign + Copy + Div<Output = Self> + PartialOrd {

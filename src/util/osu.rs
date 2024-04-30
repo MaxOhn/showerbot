@@ -176,7 +176,7 @@ pub trait SortableScore {
     fn n_misses(&self) -> u32;
     fn pp(&self) -> Option<f32>;
     fn score(&self) -> u32;
-    fn score_id(&self) -> Option<u64>;
+    fn score_id(&self) -> u64;
     fn seconds_drain(&self) -> u32;
     fn stars(&self) -> f32;
     fn total_hits_sort(&self) -> u32;
@@ -216,7 +216,7 @@ impl SortableScore for Score {
     }
 
     fn n_misses(&self) -> u32 {
-        self.statistics.count_miss
+        self.statistics.miss
     }
 
     fn pp(&self) -> Option<f32> {
@@ -227,8 +227,8 @@ impl SortableScore for Score {
         self.score
     }
 
-    fn score_id(&self) -> Option<u64> {
-        self.score_id
+    fn score_id(&self) -> u64 {
+        self.id
     }
 
     fn seconds_drain(&self) -> u32 {
@@ -291,7 +291,7 @@ macro_rules! impl_sortable_score_tuple {
                 SortableScore::score(&self.$idx)
             }
 
-            fn score_id(&self) -> Option<u64> {
+            fn score_id(&self) -> u64 {
                 SortableScore::score_id(&self.$idx)
             }
 

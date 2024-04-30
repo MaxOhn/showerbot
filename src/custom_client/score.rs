@@ -1,4 +1,7 @@
-use rosu_v2::prelude::{CountryCode, GameMode, GameMods, Grade, ModeAsSeed, RankStatus};
+use rosu_v2::{
+    model::score::ScoreStatistics,
+    prelude::{CountryCode, GameMode, GameMods, Grade, ModeAsSeed, RankStatus},
+};
 use serde::{
     de::{DeserializeSeed, Error as DeError},
     Deserialize, Deserializer,
@@ -57,31 +60,13 @@ impl<'de> Deserialize<'de> for ScraperScore {
             #[serde(rename = "ruleset_id")]
             mode: GameMode,
             max_combo: u32,
-            // #[serde(rename = "legacy_perfect")]
-            // perfect: bool,
-            statistics: ScraperScoreStatistics,
+            statistics: ScoreStatistics,
             pp: Option<f32>,
             rank: Grade,
             #[serde(with = "deser::datetime")]
             ended_at: OffsetDateTime,
             replay: bool,
             user: ScraperUser,
-        }
-
-        #[derive(Deserialize)]
-        pub struct ScraperScoreStatistics {
-            #[serde(default, rename = "perfect")]
-            count_geki: u32,
-            #[serde(default, rename = "good", alias = "small_tick_miss")]
-            count_katu: u32,
-            #[serde(default, rename = "great")]
-            count_300: u32,
-            #[serde(default, rename = "ok", alias = "large_tick_hit")]
-            count_100: u32,
-            #[serde(default, rename = "meh", alias = "small_tick_hit")]
-            count_50: u32,
-            #[serde(default, rename = "miss")]
-            count_miss: u32,
         }
 
         #[derive(Deserialize)]
@@ -117,12 +102,12 @@ impl<'de> Deserialize<'de> for ScraperScore {
             grade: helper.rank,
             date: helper.ended_at,
             replay: helper.replay,
-            count50: helper.statistics.count_50,
-            count100: helper.statistics.count_100,
-            count300: helper.statistics.count_300,
-            count_geki: helper.statistics.count_geki,
-            count_katu: helper.statistics.count_katu,
-            count_miss: helper.statistics.count_miss,
+            count50: helper.statistics.meh,
+            count100: helper.statistics.ok,
+            count300: helper.statistics.great,
+            count_geki: helper.statistics.perfect,
+            count_katu: helper.statistics.good,
+            count_miss: helper.statistics.miss,
         })
     }
 }

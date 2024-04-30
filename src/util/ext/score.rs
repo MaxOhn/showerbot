@@ -218,22 +218,22 @@ pub trait ScoreExt: Send + Sync {
 
 impl ScoreExt for Score {
     fn count_miss(&self) -> u32 {
-        self.statistics.count_miss
+        self.statistics.miss
     }
     fn count_50(&self) -> u32 {
-        self.statistics.count_50
+        self.statistics.meh
     }
     fn count_100(&self) -> u32 {
-        self.statistics.count_100
+        self.statistics.ok
     }
     fn count_300(&self) -> u32 {
-        self.statistics.count_300
+        self.statistics.great
     }
     fn count_geki(&self) -> u32 {
-        self.statistics.count_geki
+        self.statistics.perfect
     }
     fn count_katu(&self) -> u32 {
-        self.statistics.count_katu
+        self.statistics.good
     }
     fn max_combo(&self) -> u32 {
         self.max_combo
