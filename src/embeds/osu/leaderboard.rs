@@ -17,7 +17,7 @@ use crate::{
         datetime::HowLongAgoDynamic,
         numbers::with_comma_int,
         osu::prepare_beatmap_file,
-        CowUtils, ScoreExt,
+        ScoreExt,
     },
     BotResult,
 };
@@ -62,9 +62,7 @@ impl LeaderboardEmbed {
         let _ = write!(
             author_text,
             "{artist} - {title} [{version}] [{stars:.2}★]",
-            artist = artist.cow_escape_markdown(),
-            title = title.cow_escape_markdown(),
-            version = map.version.cow_escape_markdown(),
+            version = map.version,
             stars = map.stars
         );
 
