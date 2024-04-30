@@ -3,11 +3,13 @@ use std::fmt::{Display, Formatter, Result as FmtResult, Write};
 use command_macros::EmbedData;
 use hashbrown::{hash_map::Entry, HashMap};
 use rosu_pp::{Beatmap as Map, BeatmapExt, DifficultyAttributes, ScoreState};
-use rosu_v2::prelude::{BeatmapExtended, BeatmapsetExtended, GameMode};
+use rosu_v2::{
+    model::score::Score,
+    prelude::{BeatmapExtended, BeatmapsetExtended, GameMode},
+};
 
 use crate::{
     core::Context,
-    custom_client::ScraperScore,
     error::PpError,
     util::{
         builder::{AuthorBuilder, FooterBuilder},
@@ -19,6 +21,8 @@ use crate::{
     },
     BotResult,
 };
+
+const UNKNOWN_NAME: &str = "<unknown name>";
 
 #[derive(EmbedData)]
 pub struct LeaderboardEmbed {
@@ -39,7 +43,7 @@ impl LeaderboardEmbed {
         pages: (usize, usize),
     ) -> BotResult<Self>
     where
-        S: Iterator<Item = &'i ScraperScore>,
+        S: Iterator<Item = &'i Score>,
     {
         let BeatmapsetExtended {
             artist,
@@ -78,7 +82,10 @@ impl LeaderboardEmbed {
                 let _ = write!(
                     username,
                     "[{name}]({OSU_BASE}users/{id})",
-                    name = score.username,
+                    name = score
+                        .user
+                        .as_ref()
+                        .map_or(UNKNOWN_NAME, |user| user.username.as_str()),
                     id = score.user_id
                 );
 
@@ -92,8 +99,8 @@ impl LeaderboardEmbed {
                     mods = score.mods,
                     pp = get_pp(&mut mod_map, score, &rosu_map).await,
                     acc = score.accuracy,
-                    miss = MissFormat(score.count_miss),
-                    ago = HowLongAgoDynamic::new(&score.date),
+                    miss = MissFormat(score.statistics.miss),
+                    ago = HowLongAgoDynamic::new(&score.ended_at),
                 );
             }
 
@@ -126,7 +133,7 @@ impl LeaderboardEmbed {
 
 async fn get_pp(
     mod_map: &mut HashMap<u32, (DifficultyAttributes, f32)>,
-    score: &ScraperScore,
+    score: &Score,
     map: &Map,
 ) -> PPFormatter {
     let bits = score.mods.bits();
@@ -148,12 +155,12 @@ async fn get_pp(
 
     let state = ScoreState {
         max_combo: score.max_combo as usize,
-        n_geki: score.count_geki as usize,
-        n_katu: score.count_katu as usize,
-        n300: score.count300 as usize,
-        n100: score.count100 as usize,
-        n50: score.count50 as usize,
-        n_misses: score.count_miss as usize,
+        n_geki: score.statistics.perfect as usize,
+        n_katu: score.statistics.good as usize,
+        n300: score.statistics.great as usize,
+        n100: score.statistics.ok as usize,
+        n50: score.statistics.meh as usize,
+        n_misses: score.statistics.miss as usize,
     };
 
     let pp = map
@@ -176,12 +183,12 @@ impl Display for PPFormatter {
 }
 
 struct ComboFormatter<'a> {
-    score: &'a ScraperScore,
+    score: &'a Score,
     map: &'a BeatmapExtended,
 }
 
 impl<'a> ComboFormatter<'a> {
-    fn new(score: &'a ScraperScore, map: &'a BeatmapExtended) -> Self {
+    fn new(score: &'a Score, map: &'a BeatmapExtended) -> Self {
         Self { score, map }
     }
 }
@@ -193,10 +200,10 @@ impl<'a> Display for ComboFormatter<'a> {
         if let Some(combo) = self.map.max_combo {
             write!(f, "/{combo}x")
         } else {
-            let mut ratio = self.score.count_geki as f32;
+            let mut ratio = self.score.statistics.perfect as f32;
 
-            if self.score.count300 > 0 {
-                ratio /= self.score.count300 as f32
+            if self.score.statistics.great > 0 {
+                ratio /= self.score.statistics.great as f32
             }
 
             write!(f, " / {ratio:.2}")

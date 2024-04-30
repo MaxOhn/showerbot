@@ -10,7 +10,10 @@ use hyper::{
 };
 use hyper_rustls::{HttpsConnector, HttpsConnectorBuilder};
 use leaky_bucket_lite::LeakyBucket;
-use rosu_v2::prelude::{GameModIntermode, GameMode, GameModsIntermode};
+use rosu_v2::{
+    model::score::Score,
+    prelude::{GameModIntermode, GameMode, GameModsIntermode},
+};
 use tokio::time::{sleep, Duration};
 
 use crate::{
@@ -18,13 +21,12 @@ use crate::{
     util::{constants::OSU_BASE, ExponentialBackoff},
 };
 
-pub use self::{error::*, score::*};
+pub use self::error::*;
 
-use self::score::ScraperScores;
+use self::scores::Scores;
 
-mod deser;
 mod error;
-mod score;
+mod scores;
 
 type ClientResult<T> = Result<T, CustomClientError>;
 
@@ -131,7 +133,7 @@ impl CustomClient {
         national: bool,
         mods: Option<&GameModsIntermode>,
         mode: GameMode,
-    ) -> ClientResult<Vec<ScraperScore>> {
+    ) -> ClientResult<Vec<Score>> {
         let mut scores = self._get_leaderboard(map_id, national, mods).await?;
 
         let non_mirror = mods
@@ -197,7 +199,7 @@ impl CustomClient {
         map_id: u32,
         national: bool,
         mods: Option<&GameModsIntermode>,
-    ) -> ClientResult<Vec<ScraperScore>> {
+    ) -> ClientResult<Vec<Score>> {
         let mut url = format!("{OSU_BASE}beatmaps/{map_id}/scores?");
 
         if national {
@@ -216,7 +218,7 @@ impl CustomClient {
 
         let bytes = self.make_get_request(url, Site::OsuHiddenApi).await?;
 
-        let scores: ScraperScores = serde_json::from_slice(&bytes)
+        let scores: Scores = serde_json::from_slice(&bytes)
             .map_err(|e| CustomClientError::parsing(e, &bytes, ErrorKind::Leaderboard))?;
 
         Ok(scores.get())

@@ -1,10 +1,10 @@
 use std::sync::Arc;
 
 use command_macros::BasePagination;
-use rosu_v2::prelude::BeatmapExtended;
+use rosu_v2::{model::score::Score, prelude::BeatmapExtended};
 use twilight_model::channel::Message;
 
-use crate::{core::Context, custom_client::ScraperScore, embeds::LeaderboardEmbed, BotResult};
+use crate::{core::Context, embeds::LeaderboardEmbed, BotResult};
 
 use super::{Pages, Pagination};
 
@@ -14,7 +14,7 @@ pub struct LeaderboardPagination {
     msg: Message,
     pages: Pages,
     map: BeatmapExtended,
-    scores: Vec<ScraperScore>,
+    scores: Vec<Score>,
     first_place_icon: Option<String>,
 }
 
@@ -22,7 +22,7 @@ impl LeaderboardPagination {
     pub fn new(
         msg: Message,
         map: BeatmapExtended,
-        scores: Vec<ScraperScore>,
+        scores: Vec<Score>,
         first_place_icon: Option<String>,
         ctx: Arc<Context>,
     ) -> Self {

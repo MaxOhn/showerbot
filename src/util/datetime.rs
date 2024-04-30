@@ -1,12 +1,6 @@
 use std::fmt::{Display, Formatter, Result as FmtResult};
 
-use time::{
-    format_description::{
-        modifier::{Day, Hour, Minute, Month, OffsetHour, OffsetMinute, Second, Year},
-        Component, FormatItem,
-    },
-    OffsetDateTime,
-};
+use time::OffsetDateTime;
 
 /// Instead of writing the whole string like `HowLongAgoText`,
 /// this just writes discord's syntax for dynamic timestamps and lets
@@ -33,31 +27,3 @@ impl Display for HowLongAgoDynamic {
         write!(f, "<t:{}:R>", self.secs)
     }
 }
-
-pub const DATE_FORMAT: &[FormatItem<'_>] = &[
-    FormatItem::Component(Component::Year(Year::default())),
-    FormatItem::Literal(b"-"),
-    FormatItem::Component(Component::Month(Month::default())),
-    FormatItem::Literal(b"-"),
-    FormatItem::Component(Component::Day(Day::default())),
-];
-
-pub const TIME_FORMAT: &[FormatItem<'_>] = &[
-    FormatItem::Component(Component::Hour(<Hour>::default())),
-    FormatItem::Literal(b":"),
-    FormatItem::Component(Component::Minute(<Minute>::default())),
-    FormatItem::Literal(b":"),
-    FormatItem::Component(Component::Second(<Second>::default())),
-];
-
-pub const OFFSET_FORMAT: &[FormatItem<'_>] = &[
-    FormatItem::Component(Component::OffsetHour(OffsetHour::default())),
-    FormatItem::Literal(b":"),
-    FormatItem::Component(Component::OffsetMinute(OffsetMinute::default())),
-];
-
-pub const DATETIME_FORMAT: &[FormatItem<'_>] = &[
-    FormatItem::Compound(DATE_FORMAT),
-    FormatItem::Literal(b"T"),
-    FormatItem::Compound(TIME_FORMAT),
-];
