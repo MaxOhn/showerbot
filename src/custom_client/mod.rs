@@ -130,11 +130,10 @@ impl CustomClient {
     pub async fn get_leaderboard(
         &self,
         map_id: u32,
-        national: bool,
         mods: Option<&GameModsIntermode>,
         mode: GameMode,
     ) -> ClientResult<Vec<Score>> {
-        let mut scores = self._get_leaderboard(map_id, national, mods).await?;
+        let mut scores = self._get_leaderboard(map_id, mods).await?;
 
         let non_mirror = mods
             .map(|mods| !mods.contains(GameModIntermode::Mirror))
@@ -147,9 +146,7 @@ impl CustomClient {
                 Some(mods) => Some(mods.clone() | GameModIntermode::Mirror),
             };
 
-            let mut new_scores = self
-                ._get_leaderboard(map_id, national, mods.as_ref())
-                .await?;
+            let mut new_scores = self._get_leaderboard(map_id, mods.as_ref()).await?;
             scores.append(&mut new_scores);
             scores.sort_unstable_by(|a, b| b.score.cmp(&a.score));
             let mut uniques = HashSet::with_capacity(50);
@@ -174,15 +171,11 @@ impl CustomClient {
                 let mods = mods
                     .as_ref()
                     .map(|mods| mods.clone() | GameModIntermode::Mirror);
-                let mut new_scores = self
-                    ._get_leaderboard(map_id, national, mods.as_ref())
-                    .await?;
+                let mut new_scores = self._get_leaderboard(map_id, mods.as_ref()).await?;
                 scores.append(&mut new_scores);
             }
 
-            let mut new_scores = self
-                ._get_leaderboard(map_id, national, mods.as_ref())
-                .await?;
+            let mut new_scores = self._get_leaderboard(map_id, mods.as_ref()).await?;
             scores.append(&mut new_scores);
             scores.sort_unstable_by(|a, b| b.score.cmp(&a.score));
             let mut uniques = HashSet::with_capacity(50);
@@ -197,14 +190,9 @@ impl CustomClient {
     async fn _get_leaderboard(
         &self,
         map_id: u32,
-        national: bool,
         mods: Option<&GameModsIntermode>,
     ) -> ClientResult<Vec<Score>> {
-        let mut url = format!("{OSU_BASE}beatmaps/{map_id}/scores?");
-
-        if national {
-            url.push_str("type=country");
-        }
+        let mut url = format!("{OSU_BASE}beatmaps/{map_id}/scores?type=country");
 
         if let Some(mods) = mods {
             if mods.is_empty() {

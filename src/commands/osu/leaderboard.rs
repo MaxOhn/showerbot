@@ -155,7 +155,7 @@ async fn prefix_nationalleaderboard(
     args: Args<'_>,
 ) -> BotResult<()> {
     match LeaderboardArgs::args(msg, args) {
-        Ok(args) => leaderboard(ctx, msg.into(), args, true).await,
+        Ok(args) => leaderboard(ctx, msg.into(), args).await,
         Err(content) => {
             msg.error(&ctx, content).await?;
 
@@ -168,7 +168,7 @@ async fn slash_leaderboard(ctx: Arc<Context>, mut command: InteractionCommand) -
     let args = Leaderboard::from_interaction(command.input_data())?;
 
     match LeaderboardArgs::try_from(args) {
-        Ok(args) => leaderboard(ctx, command.into(), args, true).await,
+        Ok(args) => leaderboard(ctx, command.into(), args).await,
         Err(content) => {
             command.error(&ctx, content).await?;
 
@@ -181,7 +181,7 @@ async fn slash_nlb(ctx: Arc<Context>, mut command: InteractionCommand) -> BotRes
     let args = Nlb::from_interaction(command.input_data())?;
 
     match LeaderboardArgs::try_from(args) {
-        Ok(args) => leaderboard(ctx, command.into(), args, true).await,
+        Ok(args) => leaderboard(ctx, command.into(), args).await,
         Err(content) => {
             command.error(&ctx, content).await?;
 
@@ -194,7 +194,6 @@ async fn leaderboard(
     ctx: Arc<Context>,
     orig: CommandOrigin<'_>,
     args: LeaderboardArgs<'_>,
-    national: bool,
 ) -> BotResult<()> {
     let mods = match args.mods() {
         ModsResult::Mods(mods) => Some(mods),
@@ -268,7 +267,6 @@ async fn leaderboard(
     // Retrieve the map's leaderboard
     let scores_future = ctx.client().get_leaderboard(
         map_id,
-        national,
         match mods {
             Some(ModSelection::Exclude(_)) | None => None,
             Some(ModSelection::Include(ref m)) | Some(ModSelection::Exact(ref m)) => Some(m),
