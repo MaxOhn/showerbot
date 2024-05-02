@@ -11,8 +11,6 @@ pub enum CustomClientError {
     Http(#[from] hyper::http::Error),
     #[error("hyper error")]
     Hyper(#[from] hyper::Error),
-    #[error("reached retry limit and still failed to download {0}.osu")]
-    MapFileRetryLimit(u32),
     #[error("could not deserialize {kind}: {body}")]
     Parsing {
         body: String,
@@ -20,6 +18,8 @@ pub enum CustomClientError {
         #[source]
         source: Error,
     },
+    #[error("reached retry limit and still failed")]
+    RetryLimit,
     #[error("failed with status code {status} when requesting {url}")]
     Status { status: StatusCode, url: String },
 }

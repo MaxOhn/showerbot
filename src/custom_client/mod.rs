@@ -82,22 +82,37 @@ impl CustomClient {
         self.ratelimiters[site as usize].acquire_one().await
     }
 
-    async fn make_get_request(&self, url: impl AsRef<str>, site: Site) -> ClientResult<Bytes> {
-        trace!("GET request of url {}", url.as_ref());
+    async fn make_get_request(&self, url: &str, site: Site) -> ClientResult<Bytes> {
+        const ATTEMPTS: usize = 10;
 
-        let req = self
-            .make_get_request_(url.as_ref(), site)
-            .body(Body::empty())?;
+        trace!("GET request of url {url}");
 
-        self.ratelimit(site).await;
-        let response = self.client.request(req).await?;
+        let backoff = ExponentialBackoff::new(2).factor(500).max_delay(10_000);
 
-        Self::error_for_status(response, url.as_ref()).await
+        for (duration, i) in backoff.take(ATTEMPTS).zip(1..) {
+            let req = self.make_get_request_(url, site).body(Body::empty())?;
+            self.ratelimit(site).await;
+            let response = self.client.request(req).await?;
+            let res = Self::error_for_status(response, url).await;
+
+            if let Err(CustomClientError::Status {
+                status: StatusCode::TOO_MANY_REQUESTS,
+                ..
+            }) = res
+            {
+                debug!("Retry attempt #{i} for {url} | Backoff {duration:?}");
+                sleep(duration).await;
+            } else {
+                return res;
+            }
+        }
+
+        Err(CustomClientError::RetryLimit)
     }
 
-    fn make_get_request_(&self, url: impl AsRef<str>, site: Site) -> RequestBuilder {
+    fn make_get_request_(&self, url: &str, site: Site) -> RequestBuilder {
         let req = Request::builder()
-            .uri(url.as_ref())
+            .uri(url)
             .method(Method::GET)
             .header(USER_AGENT, MY_USER_AGENT);
 
@@ -107,14 +122,11 @@ impl CustomClient {
         }
     }
 
-    async fn error_for_status(
-        response: Response<Body>,
-        url: impl Into<String>,
-    ) -> ClientResult<Bytes> {
+    async fn error_for_status(response: Response<Body>, url: &str) -> ClientResult<Bytes> {
         if response.status().is_client_error() || response.status().is_server_error() {
             Err(CustomClientError::Status {
                 status: response.status(),
-                url: url.into(),
+                url: url.to_owned(),
             })
         } else {
             let bytes = hyper::body::to_bytes(response.into_body()).await?;
@@ -123,7 +135,7 @@ impl CustomClient {
         }
     }
 
-    // Retrieve the leaderboard of a map (national / global)
+    // Retrieve the national leaderboard of a map
     // If mods contain DT / NC, it will do another request for the opposite
     // If mods dont contain Mirror and its a mania map, it will perform the
     // same requests again but with Mirror enabled
@@ -133,7 +145,7 @@ impl CustomClient {
         mods: Option<&GameModsIntermode>,
         mode: GameMode,
     ) -> ClientResult<Vec<Score>> {
-        let mut scores = self._get_leaderboard(map_id, mods).await?;
+        let mut scores = self.get_leaderboard_(map_id, mods).await?;
 
         let non_mirror = mods
             .map(|mods| !mods.contains(GameModIntermode::Mirror))
@@ -146,7 +158,7 @@ impl CustomClient {
                 Some(mods) => Some(mods.clone() | GameModIntermode::Mirror),
             };
 
-            let mut new_scores = self._get_leaderboard(map_id, mods.as_ref()).await?;
+            let mut new_scores = self.get_leaderboard_(map_id, mods.as_ref()).await?;
             scores.append(&mut new_scores);
             scores.sort_unstable_by(|a, b| b.score.cmp(&a.score));
             let mut uniques = HashSet::with_capacity(50);
@@ -171,11 +183,11 @@ impl CustomClient {
                 let mods = mods
                     .as_ref()
                     .map(|mods| mods.clone() | GameModIntermode::Mirror);
-                let mut new_scores = self._get_leaderboard(map_id, mods.as_ref()).await?;
+                let mut new_scores = self.get_leaderboard_(map_id, mods.as_ref()).await?;
                 scores.append(&mut new_scores);
             }
 
-            let mut new_scores = self._get_leaderboard(map_id, mods.as_ref()).await?;
+            let mut new_scores = self.get_leaderboard_(map_id, mods.as_ref()).await?;
             scores.append(&mut new_scores);
             scores.sort_unstable_by(|a, b| b.score.cmp(&a.score));
             let mut uniques = HashSet::with_capacity(50);
@@ -186,8 +198,8 @@ impl CustomClient {
         Ok(scores)
     }
 
-    // Retrieve the leaderboard of a map (national / global)
-    async fn _get_leaderboard(
+    // Retrieve the national leaderboard of a map
+    async fn get_leaderboard_(
         &self,
         map_id: u32,
         mods: Option<&GameModsIntermode>,
@@ -204,7 +216,7 @@ impl CustomClient {
             }
         }
 
-        let bytes = self.make_get_request(url, Site::OsuHiddenApi).await?;
+        let bytes = self.make_get_request(&url, Site::OsuHiddenApi).await?;
 
         let scores: Scores = serde_json::from_slice(&bytes)
             .map_err(|e| CustomClientError::parsing(e, &bytes, ErrorKind::Leaderboard))?;
@@ -214,22 +226,13 @@ impl CustomClient {
 
     pub async fn get_map_file(&self, map_id: u32) -> ClientResult<Bytes> {
         let url = format!("{OSU_BASE}osu/{map_id}");
-        let backoff = ExponentialBackoff::new(2).factor(500).max_delay(10_000);
-        const ATTEMPTS: usize = 10;
+        let bytes = self.make_get_request(&url, Site::OsuMapFile).await?;
 
-        for (duration, i) in backoff.take(ATTEMPTS).zip(1..) {
-            let result = self.make_get_request(&url, Site::OsuMapFile).await;
-
-            if matches!(&result, Err(CustomClientError::Status { status, ..}) if *status == StatusCode::TOO_MANY_REQUESTS)
-                || matches!(&result, Ok(bytes) if bytes.starts_with(b"<html>"))
-            {
-                debug!("Request beatmap retry attempt #{i} | Backoff {duration:?}");
-                sleep(duration).await;
-            } else {
-                return result;
-            }
+        // On invalid response, retry once more
+        if bytes.starts_with(b"<html>") {
+            self.make_get_request(&url, Site::OsuMapFile).await
+        } else {
+            Ok(bytes)
         }
-
-        Err(CustomClientError::MapFileRetryLimit(map_id))
     }
 }
