@@ -57,18 +57,18 @@ impl CustomClient {
 
         let client = HyperClient::builder().build(connector);
 
-        let ratelimiter = |per_second| {
+        let ratelimiter = |per_ten_seconds| {
             LeakyBucket::builder()
-                .max(per_second)
-                .tokens(per_second)
-                .refill_interval(Duration::from_millis(1000 / per_second as u64))
+                .max(1)
+                .tokens(1)
+                .refill_interval(Duration::from_millis(10_000 / per_ten_seconds as u64))
                 .refill_amount(1)
                 .build()
         };
 
         let ratelimiters = [
-            ratelimiter(2), // OsuHiddenApi
-            ratelimiter(5), // OsuMapFile
+            ratelimiter(4),  // OsuHiddenApi
+            ratelimiter(20), // OsuMapFile
         ];
 
         Ok(Self {
