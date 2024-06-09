@@ -1,6 +1,6 @@
 [package]
 name = "showerbot"
-version = "2.1.1"
+version = "2.1.2"
 authors = ["MaxOhn <ohn.m@hotmail.de>"]
 edition = "2021"
 repository = "https://github.com/MaxOhn/showerbot"
