@@ -1,8 +1,3 @@
-use std::{
-    cmp::PartialOrd,
-    ops::{AddAssign, Div},
-};
-
 use twilight_interactions::command::{CommandOption, CreateOption};
 
 use crate::util::osu::ModSelection;
@@ -19,29 +14,6 @@ pub enum ModsResult {
     Mods(ModSelection),
     None,
     Invalid,
-}
-
-pub trait Number: AddAssign + Copy + Div<Output = Self> + PartialOrd {
-    fn zero() -> Self;
-    fn max() -> Self;
-    fn min() -> Self;
-    fn inc(&mut self);
-}
-
-#[rustfmt::skip]
-impl Number for f32 {
-    fn zero() -> Self { 0.0 }
-    fn max() -> Self { f32::MAX }
-    fn min() -> Self { f32::MIN }
-    fn inc(&mut self) { *self += 1.0 }
-}
-
-#[rustfmt::skip]
-impl Number for u32 {
-    fn zero() -> Self { 0 }
-    fn max() -> Self { u32::MAX }
-    fn min() -> Self { u32::MIN }
-    fn inc(&mut self) { *self += 1 }
 }
 
 pub struct MinMaxAvg<N> {

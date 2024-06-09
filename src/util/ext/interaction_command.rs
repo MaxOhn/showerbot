@@ -37,15 +37,6 @@ pub trait InteractionCommandExt {
     ///
     /// Be sure the command was deferred beforehand.
     fn error(&self, ctx: &Context, content: impl Into<String>) -> ResponseFuture<Message>;
-
-    /// Respond to a command with some content in a red embed.
-    ///
-    /// Be sure the command was **not** deferred beforehand.
-    fn error_callback(
-        &self,
-        ctx: &Context,
-        content: impl Into<String>,
-    ) -> ResponseFuture<EmptyBody>;
 }
 
 impl InteractionCommandExt for InteractionCommand {
@@ -141,28 +132,6 @@ impl InteractionCommandExt for InteractionCommand {
             .update_response(&self.token)
             .embeds(Some(&[embed]))
             .expect("invalid embed")
-            .into_future()
-    }
-
-    fn error_callback(
-        &self,
-        ctx: &Context,
-        content: impl Into<String>,
-    ) -> ResponseFuture<EmptyBody> {
-        let embed = EmbedBuilder::new().description(content).color(RED).build();
-
-        let data = InteractionResponseData {
-            embeds: Some(vec![embed]),
-            ..Default::default()
-        };
-
-        let response = InteractionResponse {
-            kind: InteractionResponseType::ChannelMessageWithSource,
-            data: Some(data),
-        };
-
-        ctx.interaction()
-            .create_response(self.id, &self.token, &response)
             .into_future()
     }
 }

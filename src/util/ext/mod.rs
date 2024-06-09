@@ -6,6 +6,5 @@ pub use self::{
 mod authored;
 mod channel;
 mod interaction_command;
-mod map;
 mod message;
 mod score;

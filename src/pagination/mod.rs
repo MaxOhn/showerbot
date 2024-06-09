@@ -80,10 +80,6 @@ pub trait BasePagination {
         self.pages().per_page
     }
 
-    fn total_pages(&self) -> usize {
-        self.pages().total_pages
-    }
-
     fn index_mut(&mut self) -> &mut usize {
         &mut self.pages_mut().index
     }

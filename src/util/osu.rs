@@ -67,29 +67,6 @@ pub async fn prepare_beatmap_file(ctx: &Context, map_id: u32) -> Result<PathBuf,
     Ok(map_path)
 }
 
-pub trait ExtractablePp {
-    fn extract_pp(&self) -> Vec<f32>;
-}
-
-impl ExtractablePp for [Score] {
-    fn extract_pp(&self) -> Vec<f32> {
-        self.iter().map(|s| s.pp.unwrap_or(0.0)).collect()
-    }
-}
-
-pub trait PpListUtil {
-    fn accum_weighted(&self) -> f32;
-}
-
-impl PpListUtil for [f32] {
-    fn accum_weighted(&self) -> f32 {
-        self.iter()
-            .copied()
-            .zip(0..)
-            .fold(0.0, |sum, (pp, i)| sum + pp * 0.95_f32.powi(i))
-    }
-}
-
 #[derive(Copy, Clone, Debug)]
 pub enum MapIdType {
     Map(u32),

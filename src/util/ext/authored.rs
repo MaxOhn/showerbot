@@ -21,9 +21,6 @@ pub trait Authored {
 
     /// Author's user id
     fn user_id(&self) -> BotResult<Id<UserMarker>>;
-
-    /// Author's username
-    fn username(&self) -> BotResult<&str>;
 }
 
 impl Authored for InteractionCommand {
@@ -46,10 +43,6 @@ impl Authored for InteractionCommand {
     fn user_id(&self) -> BotResult<Id<UserMarker>> {
         self.user().map(|user| user.id)
     }
-
-    fn username(&self) -> BotResult<&str> {
-        self.user().map(|user| user.name.as_str())
-    }
 }
 
 impl Authored for Message {
@@ -71,10 +64,5 @@ impl Authored for Message {
     #[inline]
     fn user_id(&self) -> BotResult<Id<UserMarker>> {
         Ok(self.author.id)
-    }
-
-    #[inline]
-    fn username(&self) -> BotResult<&str> {
-        Ok(self.author.name.as_str())
     }
 }

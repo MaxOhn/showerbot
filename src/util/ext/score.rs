@@ -1,7 +1,6 @@
 use crate::util::{numbers::round, osu::grade_emote};
 
 use rosu_v2::prelude::{GameModIntermode, GameMode, GameMods, Grade, Score};
-use std::fmt::Write;
 
 pub trait ScoreExt: Send + Sync {
     // Required to implement
@@ -11,10 +10,7 @@ pub trait ScoreExt: Send + Sync {
     fn count_300(&self) -> u32;
     fn count_geki(&self) -> u32;
     fn count_katu(&self) -> u32;
-    fn max_combo(&self) -> u32;
     fn mods(&self) -> &GameMods;
-    fn score(&self) -> u32;
-    fn pp(&self) -> Option<f32>;
     fn acc(&self, mode: GameMode) -> f32;
 
     // Optional to implement
@@ -48,22 +44,6 @@ pub trait ScoreExt: Send + Sync {
     // Processing to strings
     fn grade_emote(&self, mode: GameMode) -> &'static str {
         grade_emote(self.grade(mode))
-    }
-    fn hits_string(&self, mode: GameMode) -> String {
-        let mut hits = String::from("{");
-        if mode == GameMode::Mania {
-            let _ = write!(hits, "{}/", self.count_geki());
-        }
-        let _ = write!(hits, "{}/", self.count_300());
-        if mode == GameMode::Mania {
-            let _ = write!(hits, "{}/", self.count_katu());
-        }
-        let _ = write!(hits, "{}/", self.count_100());
-        if mode != GameMode::Taiko {
-            let _ = write!(hits, "{}/", self.count_50());
-        }
-        let _ = write!(hits, "{}}}", self.count_miss());
-        hits
     }
 
     // #########################
@@ -232,20 +212,11 @@ impl ScoreExt for Score {
     fn count_katu(&self) -> u32 {
         self.statistics.good
     }
-    fn max_combo(&self) -> u32 {
-        self.max_combo
-    }
     fn mods(&self) -> &GameMods {
         &self.mods
     }
     fn grade(&self, _mode: GameMode) -> Grade {
         self.grade
-    }
-    fn score(&self) -> u32 {
-        self.score
-    }
-    fn pp(&self) -> Option<f32> {
-        self.pp
     }
     fn acc(&self, _: GameMode) -> f32 {
         round(self.accuracy)

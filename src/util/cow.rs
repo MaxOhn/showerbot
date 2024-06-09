@@ -1,3 +1,5 @@
+#![allow(unused)]
+
 use std::{
     borrow::{Cow, ToOwned},
     string::String,
