@@ -3,7 +3,6 @@ use super::stream::Stream;
 pub struct Args<'m> {
     msg: &'m str,
     stream: Stream<'m>,
-    pub num: Option<u64>,
 }
 
 impl<'m> Iterator for Args<'m> {
@@ -28,8 +27,8 @@ impl<'m> Iterator for Args<'m> {
 }
 
 impl<'m> Args<'m> {
-    pub fn new(msg: &'m str, stream: Stream<'m>, num: Option<u64>) -> Self {
-        Self { msg, stream, num }
+    pub fn new(msg: &'m str, stream: Stream<'m>) -> Self {
+        Self { msg, stream }
     }
 
     fn lex(&mut self) -> Option<(usize, usize)> {

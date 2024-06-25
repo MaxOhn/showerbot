@@ -39,15 +39,15 @@ pub async fn handle_message(ctx: Arc<Context>, msg: Message) {
     }
 
     // Parse msg content for commands
-    let (cmd, num) = match parse_invoke(&mut stream) {
-        Invoke::Command { cmd, num } => (cmd, num),
+    let cmd = match parse_invoke(&mut stream) {
+        Invoke::Command { cmd } => cmd,
         Invoke::None => return,
     };
 
     let name = cmd.name();
     log_command(&msg, name);
 
-    match process_command(ctx, cmd, &msg, stream, num).await {
+    match process_command(ctx, cmd, &msg, stream).await {
         Ok(_) => info!("Processed command `{name}`"),
         Err(err) => {
             let wrap = format!("failed to process prefix command `{name}`");
@@ -61,12 +61,11 @@ async fn process_command(
     cmd: &PrefixCommand,
     msg: &Message,
     stream: Stream<'_>,
-    num: Option<u64>,
 ) -> BotResult<()> {
     let channel = msg.channel_id;
 
     // Prepare lightweight arguments
-    let args = Args::new(&msg.content, stream, num);
+    let args = Args::new(&msg.content, stream);
 
     // Broadcast typing event
     if cmd.flags.defer() {

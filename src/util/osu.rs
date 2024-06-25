@@ -70,7 +70,7 @@ pub async fn prepare_beatmap_file(ctx: &Context, map_id: u32) -> Result<PathBuf,
 #[derive(Copy, Clone, Debug)]
 pub enum MapIdType {
     Map(u32),
-    Set(u32),
+    Set(#[allow(unused)] u32),
 }
 
 impl MapIdType {

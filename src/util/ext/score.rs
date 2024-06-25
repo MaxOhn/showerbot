@@ -161,7 +161,7 @@ pub trait ScoreExt: Send + Sync {
         let mods = self.mods();
         let acc = acc.unwrap_or_else(|| self.acc(GameMode::Catch));
 
-        if (100.0 - acc).abs() <= std::f32::EPSILON {
+        if (100.0 - acc).abs() <= f32::EPSILON {
             if mods.contains_intermode(GameModIntermode::Hidden)
                 || mods.contains_intermode(GameModIntermode::Flashlight)
             {
