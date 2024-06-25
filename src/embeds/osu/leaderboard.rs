@@ -17,7 +17,7 @@ use crate::{
         datetime::HowLongAgoDynamic,
         numbers::with_comma_int,
         osu::prepare_beatmap_file,
-        ScoreExt,
+        ModsFormatter, ScoreExt,
     },
     BotResult,
 };
@@ -94,7 +94,7 @@ impl LeaderboardEmbed {
                     grade = score.grade_emote(map.mode),
                     score = with_comma_int(score.score),
                     combo = ComboFormatter::new(score, map),
-                    mods = score.mods,
+                    mods = ModsFormatter::new(&score.mods),
                     pp = get_pp(&mut mod_map, score, &rosu_map).await,
                     acc = score.accuracy,
                     miss = MissFormat(score.statistics.miss),

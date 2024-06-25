@@ -6,7 +6,7 @@ use twilight_model::channel::Message;
 
 use crate::{error::Error, BotResult, Context};
 
-pub use self::{cow::CowUtils, ext::*};
+pub use self::{cow::CowUtils, ext::*, mods_fmt::ModsFormatter};
 
 pub mod builder;
 pub mod constants;
@@ -17,6 +17,7 @@ pub mod osu;
 
 mod cow;
 mod ext;
+mod mods_fmt;
 
 macro_rules! get {
     ($slice:ident[$idx:expr]) => {
