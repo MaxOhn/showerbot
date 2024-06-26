@@ -78,7 +78,7 @@ pub fn derive(input: DeriveInput) -> Result<TokenStream> {
                     None => return #result ::None,
                 };
 
-                if let Ok(mods) = mods.parse() {
+                if let Some(mods) = rosu_v2::model::mods::GameModsIntermode::try_from_acronyms(mods) {
                     return #result ::Mods(crate::util::osu::ModSelection::Exact(mods));
                 }
 
