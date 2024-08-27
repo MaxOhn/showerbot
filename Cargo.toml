@@ -21,7 +21,7 @@ leaky-bucket-lite = { version = "0.5" }
 once_cell = { version = "1.0" }
 radix_trie = { version = "0.2" }
 regex = { version = "1.0" }
-rosu-v2 = { git = "https://github.com/MaxOhn/rosu-v2", branch = "lazer", default-features = false }
+rosu-v2 = { git = "https://github.com/MaxOhn/rosu-v2", branch = "lazer", default-features = false, features = ["macros"] }
 rosu-pp = { git = "https://github.com/MaxOhn/rosu-pp", branch = "next", features = ["async_tokio"] }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = { version = "1.0" }

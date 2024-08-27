@@ -1,9 +1,12 @@
 use std::fmt::{Display, Formatter, Result as FmtResult};
 
 use rosu_v2::model::mods::{
-    DaycoreCatch, DaycoreMania, DaycoreOsu, DaycoreTaiko, DoubleTimeCatch, DoubleTimeMania,
-    DoubleTimeOsu, DoubleTimeTaiko, GameMod, GameMods, HalfTimeCatch, HalfTimeMania, HalfTimeOsu,
-    HalfTimeTaiko, NightcoreCatch, NightcoreMania, NightcoreOsu, NightcoreTaiko,
+    generated_mods::{
+        DaycoreCatch, DaycoreMania, DaycoreOsu, DaycoreTaiko, DoubleTimeCatch, DoubleTimeMania,
+        DoubleTimeOsu, DoubleTimeTaiko, GameMod, HalfTimeCatch, HalfTimeMania, HalfTimeOsu,
+        HalfTimeTaiko, NightcoreCatch, NightcoreMania, NightcoreOsu, NightcoreTaiko,
+    },
+    GameMods,
 };
 
 pub struct ModsFormatter<'a> {
