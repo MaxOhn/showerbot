@@ -68,7 +68,7 @@ impl LeaderboardEmbed {
 
         let description = if let Some(scores) = scores {
             let map_path = prepare_beatmap_file(ctx, map.map_id).await?;
-            let rosu_map = Map::from_path(map_path).await.map_err(PpError::from)?;
+            let rosu_map = Map::from_path(map_path).map_err(PpError::from)?;
 
             let mut mod_map = HashMap::new();
             let mut description = String::with_capacity(256);

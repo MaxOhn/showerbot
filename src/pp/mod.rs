@@ -24,7 +24,7 @@ pub struct PpCalculator {
 impl PpCalculator {
     pub async fn new(ctx: &Context, map_id: u32) -> Result<PpCalculator, PpError> {
         let map_path = prepare_beatmap_file(ctx, map_id).await?;
-        let map = Beatmap::from_path(map_path).await?;
+        let map = Beatmap::from_path(map_path)?;
 
         Ok(Self {
             map,
