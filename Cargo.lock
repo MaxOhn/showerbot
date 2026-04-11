@@ -1779,7 +1779,7 @@ dependencies = [
 [[package]]
 name = "twilight-interactions"
 version = "0.15.0"
-source = "git+https://github.com/MaxOhn/twilight-interactions?branch=with-help#d9ff3c1e35477477a25619175795880c71ca0cc1"
+source = "git+https://github.com/MaxOhn/twilight-interactions?branch=with-help-15#7e3b5e96e6cdcd75f9ebdbc85889f6e2d1cb4245"
 dependencies = [
  "twilight-interactions-derive",
  "twilight-model",
@@ -1788,7 +1788,7 @@ dependencies = [
 [[package]]
 name = "twilight-interactions-derive"
 version = "0.15.0"
-source = "git+https://github.com/MaxOhn/twilight-interactions?branch=with-help#d9ff3c1e35477477a25619175795880c71ca0cc1"
+source = "git+https://github.com/MaxOhn/twilight-interactions?branch=with-help-15#7e3b5e96e6cdcd75f9ebdbc85889f6e2d1cb4245"
 dependencies = [
  "proc-macro2",
  "quote",
