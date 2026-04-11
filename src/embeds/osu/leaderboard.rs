@@ -2,7 +2,10 @@ use std::fmt::{Display, Formatter, Result as FmtResult, Write};
 
 use command_macros::EmbedData;
 use hashbrown::{hash_map::Entry, HashMap};
-use rosu_pp::{Beatmap as Map, BeatmapExt, DifficultyAttributes, ScoreState};
+use rosu_pp::{
+    any::{DifficultyAttributes, ScoreState},
+    Beatmap as Map, Performance,
+};
 use rosu_v2::{
     model::score::Score,
     prelude::{BeatmapExtended, BeatmapsetExtended, GameMode},
@@ -143,7 +146,7 @@ async fn get_pp(
             (attrs.to_owned(), *max_pp)
         }
         Entry::Vacant(entry) => {
-            let attrs = map.max_pp(bits);
+            let attrs = Performance::new(map).mods(bits).calculate();
             let max_pp = attrs.pp() as f32;
             let (attrs, max_pp) = entry.insert((attrs.into(), max_pp));
 
@@ -152,18 +155,20 @@ async fn get_pp(
     };
 
     let state = ScoreState {
-        max_combo: score.max_combo as usize,
-        n_geki: score.statistics.perfect as usize,
-        n_katu: score.statistics.good as usize,
-        n300: score.statistics.great as usize,
-        n100: score.statistics.ok as usize,
-        n50: score.statistics.meh as usize,
-        n_misses: score.statistics.miss as usize,
+        max_combo: score.max_combo,
+        n_geki: score.statistics.perfect,
+        n_katu: score.statistics.good,
+        n300: score.statistics.great,
+        n100: score.statistics.ok,
+        n50: score.statistics.meh,
+        misses: score.statistics.miss,
+        osu_large_tick_hits: 0,
+        osu_small_tick_hits: 0,
+        slider_end_hits: 0,
+        legacy_total_score: None,
     };
 
-    let pp = map
-        .pp()
-        .attributes(attrs)
+    let pp = Performance::new(attrs)
         .mods(score.mods.bits())
         .state(state)
         .calculate()

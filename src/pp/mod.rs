@@ -1,4 +1,4 @@
-use rosu_pp::{Beatmap, BeatmapExt as rosu_v2BeatmapExt, DifficultyAttributes};
+use rosu_pp::{any::DifficultyAttributes, Beatmap, Difficulty};
 use rosu_v2::model::mods::GameModsIntermode;
 
 use crate::{core::Context, error::PpError, util::osu::prepare_beatmap_file};
@@ -47,7 +47,7 @@ impl PpCalculator {
         let map = &self.map;
 
         difficulty
-            .get_or_insert_with(|| map.stars().mods(mods).calculate())
+            .get_or_insert_with(|| Difficulty::new().mods(mods).calculate(map))
             .stars()
     }
 }
