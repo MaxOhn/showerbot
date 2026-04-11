@@ -30,6 +30,7 @@ use crate::{
 type BotResult<T> = Result<T, Error>;
 
 fn main() {
+    init_env();
     logging::init();
 
     let runtime = RuntimeBuilder::new_multi_thread()
@@ -44,8 +45,6 @@ fn main() {
 }
 
 async fn async_main() -> eyre::Result<()> {
-    init_env()?;
-
     // Load config file
     core::BotConfig::init().context("failed to initialize config")?;
 
@@ -79,14 +78,17 @@ async fn async_main() -> eyre::Result<()> {
     Ok(())
 }
 
-fn init_env() -> eyre::Result<()> {
+fn init_env() {
     match dotenvy::dotenv() {
-        Ok(_) => Ok(()),
+        Ok(_) => {}
         Err(err @ dotenvy::Error::LineParse(..)) => {
-            Err(eyre::Report::new(err).wrap_err("Failed to parse .env file"))
+            panic!(
+                "{:?}",
+                eyre::Report::new(err).wrap_err("Failed to parse .env file")
+            );
         }
         _ => {
-            eyre::bail!(
+            panic!(
                 "Failed to load env variables. \
                 Be sure you copied the .env.example file from the repository in \
                 the same directory as this executable, renamed it to .env, and \
