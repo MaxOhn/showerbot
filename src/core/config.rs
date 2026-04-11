@@ -1,6 +1,5 @@
-use std::{env, path::PathBuf};
+use std::{env, path::PathBuf, sync::OnceLock};
 
-use once_cell::sync::OnceCell;
 use twilight_model::id::{
     marker::{ChannelMarker, GuildMarker, UserMarker},
     Id,
@@ -8,7 +7,7 @@ use twilight_model::id::{
 
 use crate::{BotResult, Error};
 
-pub static CONFIG: OnceCell<BotConfig> = OnceCell::new();
+pub static CONFIG: OnceLock<BotConfig> = OnceLock::new();
 
 pub struct BotConfig {
     pub tokens: Tokens,

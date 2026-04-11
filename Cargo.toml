@@ -17,7 +17,6 @@ hyper = { version = "0.14", default-features = false }
 hyper-rustls = { version = "0.23", default-features = false, features = ["http1", "tls12", "tokio-runtime", "webpki-tokio"] }
 lazy_static = { version = "1.0" }
 leaky-bucket-lite = { version = "0.5" }
-once_cell = { version = "1.0" }
 radix_trie = { version = "0.3" }
 regex = { version = "1.0" }
 rosu-v2 = { git = "https://github.com/MaxOhn/rosu-v2", branch = "lazer", default-features = false, features = ["macros"] }
