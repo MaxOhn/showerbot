@@ -1,8 +1,12 @@
-use std::{collections::BTreeMap, fmt::Write, sync::Arc, time::Duration};
+use std::{
+    collections::{BTreeMap, HashSet},
+    fmt::Write,
+    sync::Arc,
+    time::Duration,
+};
 
 use command_macros::command;
 use eyre::Report;
-use hashbrown::HashSet;
 use tokio::time::{interval, MissedTickBehavior};
 use twilight_model::channel::{message::embed::EmbedField, Message};
 

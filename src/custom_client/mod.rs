@@ -1,7 +1,6 @@
-use std::{fmt::Write, hash::Hash};
+use std::{collections::HashSet, fmt::Write, hash::Hash};
 
 use bytes::Bytes;
-use hashbrown::HashSet;
 use http::{header::COOKIE, request::Builder as RequestBuilder, Response, StatusCode};
 use hyper::{
     client::{connect::dns::GaiResolver, Client as HyperClient, HttpConnector},

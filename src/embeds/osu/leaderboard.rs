@@ -1,7 +1,9 @@
-use std::fmt::{Display, Formatter, Result as FmtResult, Write};
+use std::{
+    collections::{hash_map::Entry, HashMap},
+    fmt::{Display, Formatter, Result as FmtResult, Write},
+};
 
 use command_macros::EmbedData;
-use hashbrown::{hash_map::Entry, HashMap};
 use rosu_pp::{
     any::{DifficultyAttributes, ScoreState},
     Beatmap as Map, Performance,
