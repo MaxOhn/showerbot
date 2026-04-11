@@ -50,5 +50,11 @@ pub enum Error {
     #[error("twilight failed to deserialize response")]
     TwilightDeserialize(#[from] twilight_http::response::DeserializeBodyError),
     #[error("error while making discord request")]
-    TwilightHttp(#[from] twilight_http::Error),
+    TwilightHttp(#[source] Box<twilight_http::Error>),
+}
+
+impl From<twilight_http::Error> for Error {
+    fn from(err: twilight_http::Error) -> Self {
+        Self::TwilightHttp(Box::new(err))
+    }
 }

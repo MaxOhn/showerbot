@@ -5,49 +5,6 @@ pub fn round(n: f32) -> f32 {
     (100.0 * n).round() / 100.0
 }
 
-pub struct FormatF32(f32);
-
-impl fmt::Display for FormatF32 {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let n = if self.0 < 0.0 {
-            f.write_str("-")?;
-
-            -self.0
-        } else {
-            self.0
-        };
-
-        let mut int = n.trunc() as i64;
-        let mut rev = 0;
-        let mut triples = 0;
-
-        while int > 0 {
-            rev = rev * 1000 + int % 1000;
-            int /= 1000;
-            triples += 1;
-        }
-
-        write!(f, "{}", rev % 1000)?;
-
-        for _ in 0..triples - 1 {
-            rev /= 1000;
-            write!(f, ",{:0>3}", rev % 1000)?;
-        }
-
-        let mut dec = (100.0 * n.fract()).round() as u32;
-
-        if dec > 0 {
-            if dec % 10 == 0 {
-                dec /= 10;
-            }
-
-            write!(f, ".{dec}")?;
-        }
-
-        Ok(())
-    }
-}
-
 pub fn with_comma_int<T: Int>(n: T) -> FormatInt {
     FormatInt(n.into_i64())
 }
@@ -111,7 +68,7 @@ into_int!(i64);
 into_int!(isize);
 
 pub fn div_euclid(group: usize, total: usize) -> usize {
-    if total % group == 0 && total > 0 {
+    if total.is_multiple_of(group) && total > 0 {
         total / group
     } else {
         total.div_euclid(group) + 1
@@ -119,7 +76,7 @@ pub fn div_euclid(group: usize, total: usize) -> usize {
 }
 
 pub fn last_multiple(per_page: usize, total: usize) -> usize {
-    if per_page <= total && total % per_page == 0 {
+    if per_page <= total && total.is_multiple_of(per_page) {
         total - per_page
     } else {
         total - total % per_page

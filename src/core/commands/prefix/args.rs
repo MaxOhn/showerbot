@@ -37,7 +37,7 @@ impl<'m> Args<'m> {
 
         if stream.next()? == b'"' {
             stream.take_until(|b| b == b'"');
-            let is_quote = stream.next().map_or(false, |b| b == b'"');
+            let is_quote = stream.next() == Some(b'"');
             let end = stream.offset();
 
             if start == end - 2 {

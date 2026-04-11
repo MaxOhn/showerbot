@@ -24,9 +24,6 @@ pub trait ChannelExt {
 
     /// Create a message inside a red embed
     fn error(&self, ctx: &Context, content: impl Into<String>) -> ResponseFuture<Message>;
-
-    /// Create a message without embed; only content
-    fn plain_message(&self, ctx: &Context, content: &str) -> ResponseFuture<Message>;
 }
 
 impl ChannelExt for Id<ChannelMarker> {
@@ -67,15 +64,6 @@ impl ChannelExt for Id<ChannelMarker> {
             .expect("invalid embed")
             .into_future()
     }
-
-    #[inline]
-    fn plain_message(&self, ctx: &Context, content: &str) -> ResponseFuture<Message> {
-        ctx.http
-            .create_message(*self)
-            .content(content)
-            .expect("invalid content")
-            .into_future()
-    }
 }
 
 impl ChannelExt for Message {
@@ -91,10 +79,5 @@ impl ChannelExt for Message {
     #[inline]
     fn error(&self, ctx: &Context, content: impl Into<String>) -> ResponseFuture<Message> {
         self.channel_id.error(ctx, content)
-    }
-
-    #[inline]
-    fn plain_message(&self, ctx: &Context, content: &str) -> ResponseFuture<Message> {
-        self.channel_id.plain_message(ctx, content)
     }
 }

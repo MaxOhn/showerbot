@@ -1,6 +1,6 @@
 use std::{future::IntoFuture, slice};
 
-use twilight_http::response::{marker::EmptyBody, ResponseFuture};
+use twilight_http::response::ResponseFuture;
 use twilight_model::{
     channel::Message,
     id::{
@@ -13,8 +13,6 @@ use crate::{core::Context, util::builder::MessageBuilder};
 
 pub trait MessageExt {
     fn update(&self, ctx: &Context, builder: &MessageBuilder<'_>) -> ResponseFuture<Message>;
-
-    fn delete(&self, ctx: &Context) -> ResponseFuture<EmptyBody>;
 }
 
 impl MessageExt for (Id<MessageMarker>, Id<ChannelMarker>) {
@@ -35,21 +33,11 @@ impl MessageExt for (Id<MessageMarker>, Id<ChannelMarker>) {
 
         req.into_future()
     }
-
-    #[inline]
-    fn delete<'l>(&'l self, ctx: &'l Context) -> ResponseFuture<EmptyBody> {
-        ctx.http.delete_message(self.1, self.0).into_future()
-    }
 }
 
 impl MessageExt for Message {
     #[inline]
     fn update(&self, ctx: &Context, builder: &MessageBuilder<'_>) -> ResponseFuture<Message> {
         (self.id, self.channel_id).update(ctx, builder)
-    }
-
-    #[inline]
-    fn delete(&self, ctx: &Context) -> ResponseFuture<EmptyBody> {
-        (self.id, self.channel_id).delete(ctx)
     }
 }
