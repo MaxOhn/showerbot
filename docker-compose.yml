@@ -1,6 +1,6 @@
 services:
   showerbot:
-    image: ghcr.io/arlind-dev/showerbot:latest
+    image: ghcr.io/maxohn/showerbot:latest
     container_name: showerbot
     env_file:
       - path: .env
