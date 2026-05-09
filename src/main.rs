@@ -81,9 +81,7 @@ async fn async_main() -> eyre::Result<()> {
 fn init_env() {
     match dotenvy::dotenv() {
         Ok(_) => {}
-        Err(dotenvy::Error::Io(e)) if e.kind() == std::io::ErrorKind::NotFound => {
-            // No .env file — env vars must be provided via the environment directly
-        }
+        Err(dotenvy::Error::Io(e)) if e.kind() == std::io::ErrorKind::NotFound => {}
         Err(err @ dotenvy::Error::LineParse(..)) => {
             panic!(
                 "{:?}",
