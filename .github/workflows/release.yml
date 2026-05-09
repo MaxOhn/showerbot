@@ -59,6 +59,7 @@ jobs:
   docker:
     needs: upload-assets
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     permissions:
       contents: read
       packages: write
@@ -68,10 +69,13 @@ jobs:
         include:
           - platform: linux/amd64
             target: x86_64-unknown-linux-gnu
+            platform_pair: amd64
           - platform: linux/arm64/v8
             target: aarch64-unknown-linux-gnu
+            platform_pair: arm64-v8
           - platform: linux/arm/v7
             target: armv7-unknown-linux-gnueabihf
+            platform_pair: arm-v7
     steps:
       - name: Set image name
         id: image
@@ -129,13 +133,10 @@ jobs:
           digest="${{ steps.build.outputs.digest }}"
           touch "/tmp/digests/${digest#sha256:}"
 
-      - name: Sanitize platform name
-        run: echo "PLATFORM_PAIR=$(echo '${{ matrix.platform }}' | tr '/' '-' | sed 's/^linux-//')" >> $GITHUB_ENV
-
       - name: Upload digest
         uses: actions/upload-artifact@v7
         with:
-          name: digest-${{ env.PLATFORM_PAIR }}
+          name: digest-${{ matrix.platform_pair }}
           path: /tmp/digests/*
           if-no-files-found: error
           retention-days: 1
@@ -143,6 +144,7 @@ jobs:
   docker-merge:
     needs: docker
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     permissions:
       contents: read
       packages: write
