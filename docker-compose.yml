@@ -1,0 +1,20 @@
+services:
+  showerbot:
+    image: ghcr.io/arlind-dev/showerbot:latest
+    container_name: showerbot
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      # Override MAP_PATH so it always points to the in-container volume path.
+      # Set MAPS_DIR on the host to point to your .osu files directory.
+      MAP_PATH: /maps
+    volumes:
+      - ${MAPS_DIR:-./maps}:/maps
+    restart: unless-stopped
+    networks:
+      - showerbot
+
+networks:
+  showerbot:
+    name: showerbot
