@@ -88,11 +88,13 @@ fn init_env() {
                 eyre::Report::new(err).wrap_err("Failed to parse .env file")
             );
         }
-        Err(err) => {
+        _ => {
             panic!(
-                "{:?}",
-                eyre::Report::new(err).wrap_err("Failed to load .env file")
-            );
+                "Failed to load env variables. \
+                Be sure you copied the .env.example file from the repository in \
+                the same directory as this executable or docker-compose, renamed it to .env, and \
+                adjusted its content."
+            )
         }
     }
 }
