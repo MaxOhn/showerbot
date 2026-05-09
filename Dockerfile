@@ -1,12 +1,15 @@
 FROM debian:bookworm-slim
 
+RUN apt-get update && apt-get install -y ca-certificates gosu && rm -rf /var/lib/apt/lists/*
+
 WORKDIR /app
 
-RUN apt-get update && apt-get install -y ca-certificates && rm -rf /var/lib/apt/lists/*
+RUN mkdir -p /app/maps
 
-COPY showerbot .
+COPY showerbot entrypoint.sh ./
+RUN chmod +x entrypoint.sh
 
-VOLUME ["/maps"]
-ENV MAP_PATH=/maps
+VOLUME ["/app/maps"]
+ENV MAP_PATH=/app/maps
 
-ENTRYPOINT ["./showerbot"]
+ENTRYPOINT ["./entrypoint.sh"]

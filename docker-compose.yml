@@ -6,11 +6,11 @@ services:
       - path: .env
         required: false
     environment:
-      # Override MAP_PATH so it always points to the in-container volume path.
-      # Set MAPS_DIR on the host to point to your .osu files directory.
-      MAP_PATH: /maps
+      PUID: ${PUID:-1000}
+      PGID: ${PGID:-1000}
+      MAP_PATH: /app/maps
     volumes:
-      - ${MAPS_DIR:-./maps}:/maps
+      - ${MAPS_DIR:-./maps}:/app/maps
     restart: unless-stopped
     networks:
       - showerbot
