@@ -139,6 +139,7 @@ async fn get_pp(
     score: &Score,
     map: &Map,
 ) -> PPFormatter {
+    // Can't cache GameMods, let's just use their bits
     let bits = score.mods.bits();
 
     let (attrs, max_pp) = match mod_map.entry(bits) {
@@ -164,14 +165,14 @@ async fn get_pp(
         n100: score.statistics.ok,
         n50: score.statistics.meh,
         misses: score.statistics.miss,
-        osu_large_tick_hits: 0,
-        osu_small_tick_hits: 0,
-        slider_end_hits: 0,
-        legacy_total_score: None,
+        osu_large_tick_hits: score.statistics.large_tick_hit,
+        osu_small_tick_hits: score.statistics.small_tick_hit,
+        slider_end_hits: score.statistics.slider_tail_hit,
+        legacy_total_score: Some(score.legacy_score),
     };
 
     let pp = Performance::new(attrs)
-        .mods(score.mods.bits())
+        .mods(bits)
         .state(state)
         .calculate()
         .pp() as f32;
