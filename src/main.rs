@@ -81,6 +81,7 @@ async fn async_main() -> eyre::Result<()> {
 fn init_env() {
     match dotenvy::dotenv() {
         Ok(_) => {}
+        Err(dotenvy::Error::Io(e)) if e.kind() == std::io::ErrorKind::NotFound => {}
         Err(err @ dotenvy::Error::LineParse(..)) => {
             panic!(
                 "{:?}",
@@ -91,7 +92,7 @@ fn init_env() {
             panic!(
                 "Failed to load env variables. \
                 Be sure you copied the .env.example file from the repository in \
-                the same directory as this executable, renamed it to .env, and \
+                the same directory as this executable or docker-compose, renamed it to .env, and \
                 adjusted its content."
             )
         }

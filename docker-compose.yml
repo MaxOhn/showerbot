@@ -1,0 +1,20 @@
+services:
+  showerbot:
+    image: ghcr.io/maxohn/showerbot:latest
+    container_name: showerbot
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      PUID: ${PUID:-1000}
+      PGID: ${PGID:-1000}
+      MAP_PATH: /app/maps
+    volumes:
+      - ${MAPS_DIR:-./maps}:/app/maps
+    restart: unless-stopped
+    networks:
+      - showerbot
+
+networks:
+  showerbot:
+    name: showerbot

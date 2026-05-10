@@ -19,7 +19,17 @@ It only has the following commands:
 ## Setup
 
 - Before starting, be sure you have access to an [osu!](https://osu.ppy.sh/home) account that has supporter. The bot will be able to show the national map leaderboards of that user's country.
-- Download a binary from the [releases](https://github.com/MaxOhn/showerbot/releases) page for your operating system.
-- Copy-paste the content of the [`.env.example`](https://github.com/MaxOhn/showerbot/blob/main/.env.example) file into a file called `.env` and put it next to the downloaded binary.
-- Read through the `.env` file and fill in all required variables
+- Copy-paste the content of the [`.env.example`](https://github.com/MaxOhn/showerbot/blob/main/.env.example) file into a file called `.env` and fill in all required variables
+
+### Binary
+
+- Download a binary from the [releases](https://github.com/MaxOhn/showerbot/releases) page for your operating system and put it next to the `.env` file
 - Run the binary
+
+### Docker
+
+- Download the [`docker-compose.yml`](https://github.com/MaxOhn/showerbot/blob/main/docker-compose.yml) and put it next to the `.env` file
+- Optionally set `PUID` and `PGID` in your `.env` to match the owner of your maps directory on the host (defaults to `1000`)
+- Optionally set `MAPS_DIR` in your `.env` to the directory containing your `.osu` files on the host (defaults to `./maps`)
+- Run `docker compose up -d`
+

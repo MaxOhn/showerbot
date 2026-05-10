@@ -1,0 +1,10 @@
+.git
+target
+.env
+.docker.env
+docker-volume
+logs
+.vscode
+*.md
+LICENSE
+maps
